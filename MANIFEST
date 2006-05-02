@@ -1,0 +1,174 @@
+BUGS
+CHANGES
+CHANGES-2.14
+LICENSE
+MANIFEST
+META.yml                                 Module meta-data (added by MakeMaker)
+Makefile.PL
+README
+TODO
+SIGNATURE
+dicop.asc
+doc/API.pod
+doc/Config.pod
+doc/Dict.pod
+doc/Extract.pod
+doc/Parallel.pod
+src/extract/extract.c		extract worker
+src/extract/m
+src/extract/mg			compile with GCC and debugging
+src/extract/mi
+src/include/dicop.h
+src/include/hexdump.h
+src/include/pwd_img.h		for pwd_img.c
+src/include/pwd_par.h		for pwd_par.c
+src/include/pwdcfg.h
+src/include/pwddict.h
+src/include/pwdgen.h
+src/include/pwdread.h
+src/include/pwdsort.h
+src/main/dicop.c
+src/main/hexdump.c
+src/main/m			compile with GCC
+src/main/main.c			workerframe
+src/main/mg			compile with GCC and debugging
+src/main/mi			compile with Intel compiler
+src/main/pwd_img.c		password extractor (from image files)
+src/main/pwd_par.c		password block gathering
+src/main/pwdcfg.c		general config file reader
+src/main/pwddict.c		password dictionary mutator
+src/main/pwdgen.c		password generator
+src/main/pwdread.c		password generator init: read charsets.def file
+src/main/pwdsort.c		sort routines
+src/mitest			compile with Intel compiler
+src/mtest			compile with GCC
+src/pwdblock/m
+src/pwdblock/mi
+src/pwdblock/pwdblock.c		test worker for batch/block pwd tests
+src/pwdtest/m
+src/pwdtest/mi
+src/pwdtest/pwdtest.c		test worker for test suite
+src/test/m
+src/test/mi
+src/test/test.c			empty test worker
+src/test_par/m
+src/test_par/test_par.c		empty test parallel worker
+t/00_compile.t			compile testworker for worker.t
+t/bad.t				check bad input handling of generator
+t/block.t			test framework with pwdblock
+t/dict.t			test framework with dictionary sets
+t/dictlist.t			test framework with dictionaries and appended
+t/dictlist2.t			test framework with dictionaries and appended
+t/extract.t			test pwd extraction generator
+t/extract2.t			test pwd extraction generator
+t/output/gen.pl			generator for expected output for dictlist.t
+t/output/image/image000.lst	expected outputs for pwd extraction from image
+t/output/image/image001.lst
+t/output/image/image002.lst
+t/output/image/image003.lst
+t/output/image/image004.lst
+t/output/image/image005.lst
+t/output/image/image006.lst
+t/output/image/image007.lst
+t/output/image/image008.lst
+t/output/image/image010.lst
+t/output/image/image011.lst
+t/output/image/image012.lst
+t/output/image/image013.lst
+t/output/image/image014.lst
+t/output/image/image015.lst
+t/output/image/image016.lst
+t/output/image/image017.lst
+t/output/image/image018.lst
+t/output/list1.txt		expected outputs for dictlist.t
+t/output/list10.txt
+t/output/list11.txt
+t/output/list12.txt
+t/output/list2.txt
+t/output/list3.txt
+t/output/list4.txt
+t/output/list5.txt
+t/output/list6.txt
+t/output/list7.txt
+t/output/list8.txt
+t/output/list9.txt
+t/par.t				test password gathering/block/parallel mode
+t/prefix.t			test framework with dictionary sets and prefix
+t/prefixg.t			test framework with generator and prefix
+t/stages.t			dictionary sets with stages and prefix
+t/target/1023.set		all possible 10 case mutations
+t/target/1023a.set		all possible 10 case mutations (and a number)
+t/target/1023b.set		all possible 10 case mutations + reverse (and a number)
+t/target/2.set			mutations=2 (2 upper)
+t/target/3.set			mutations=3 (1 lower + 2 upper)
+t/target/42.set			test job charset description file
+t/target/42a.set		dict plain
+t/target/42b.set		dict plus appended 1 numbers
+t/target/42bad.set		dict bad input
+t/target/42c.set		dict lower plus appended 1..2 numbers
+t/target/42d.set		dict lower/upper plus appended 1 char
+t/target/42e.set		dict forward/reverse, lower/upper plus 1 char
+t/target/42f.set		dict forward/reverse, lower/upper, a 0..9, a..z
+t/target/42g.set		dict forward/reverse, lower/upper, p 0..9, a..z
+t/target/42h.set		dict test for timeout
+t/target/bad_0_0.txt		test rejection of bad files with these
+t/target/bad_0_1.txt
+t/target/bad_0_2.txt
+t/target/bad_0_3.txt
+t/target/bad_0_4.txt
+t/target/bad_0_5.txt
+t/target/bad_0_6.txt
+t/target/bad_0_7.txt
+t/target/bad_0_8.txt
+t/target/bad_0_9.txt		bad dictionary file offset
+t/target/chunk_0_0.txt		chunk description files for extraction test
+t/target/chunk_0_1.txt
+t/target/chunk_0_10.txt
+t/target/chunk_0_11.txt
+t/target/chunk_0_12.txt
+t/target/chunk_0_13.txt
+t/target/chunk_0_14.txt
+t/target/chunk_0_15.txt
+t/target/chunk_0_16.txt
+t/target/chunk_0_17.txt
+t/target/chunk_0_18.txt
+t/target/chunk_0_2.txt
+t/target/chunk_0_3.txt
+t/target/chunk_0_4.txt
+t/target/chunk_0_5.txt
+t/target/chunk_0_6.txt
+t/target/chunk_0_7.txt
+t/target/chunk_0_8.txt
+t/target/chunk_0_9.txt
+t/target/chunk_1_0.txt		dictionary with file offset
+t/target/chunk_1_1.txt		dictionary with file offset
+t/target/chunk_2_0.txt		dictionary with file offset in chunk description file
+t/target/chunk_2_1.txt		dictionary with file offset in chunk description file
+t/target/extract.txt
+t/target/dictionaries/testdict.txt	normal dictionary
+t/target/dictionaries/testdict1.txt	dictionary with some number-word
+t/target/dictionaries/testdict2.txt	larger dictionary
+t/target/image000.img		test images for extracting strings
+t/target/image001.img
+t/target/image002.img
+t/target/image003.img
+t/target/image004.img
+t/target/image005.img
+t/target/p1023.set		prefix + all possible 10 case mutations
+t/target/p2.set			prefix + mutations=2 (2 upper)
+t/target/p3.set			prefix + mutations=3 (1 lower + 2 upper)
+t/target/p42.set		prefix + test job charset description file
+t/target/pg14.set		set 14 (w/ prefix)
+t/target/pg2.set		set 2 (w/ prefix)
+t/target/pg33.set		set 33 (w/ prefix)
+t/target/pg34.set		set 34 (w/ prefix)
+t/target/pg5.set		set 5 (w/ prefix)
+t/target/pg6.set		set 6 (w/ prefix)
+t/target/ps1023.set		forward, reverse, etc
+t/target/ps2.set		forward, reverse, etc
+t/target/ps3.set		forward, reverse, upper, lower, prefix + dict
+t/target/ps42.set		forward, reverse, prefix + dictionary
+t/test-worker/charsets.def
+t/test-worker/linux/dummy.txt
+t/worker.inc			actual tests for block.t and worker.t
+t/worker.t			test framework with pwdtest

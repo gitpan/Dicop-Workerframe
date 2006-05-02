@@ -1,0 +1,2 @@
+gcc -O3 -gdwarf-2 -Wall ../main/*g.o extract.c -o extract
+# strip extract

@@ -1,0 +1,21 @@
+# chunk description file for job 2, chunk 0
+# dictionary test with additional skip parameter
+
+# partial run through, forward+reverse, lower/upper, prepend a-z
+charset_id=105
+
+# from 42g.set:
+password_prefix=""
+dictionary_file="testdict.txt"
+# 1 - lowercase
+# 2 - UPPERCASE
+dictionary_mutations=3
+#   1 forward
+#   2 reverse
+dictionary_stages=3
+# prepend 0..9, a..z
+# mark my words, at byte 6, the second word begins!
+dictionary_file_offset=6
+start=6469736b
+end=687562
+target=303030

@@ -1,0 +1,312 @@
+
+=pod
+
+=head1 NAME
+
+Config - DiCoP Workerframe config file format
+
+You can use perldoc to read this document: C<perldoc README>.
+
+Last update: 2006-04-05
+
+=head1 DESCRIPTION
+
+This document describes the files used by the workerframe as config files,
+their format and contents.
+
+=head2 File format
+
+All the config files are plain text files. Comments lines start with a C<#>.
+These and empty lines are ignored entirely when reading the file.
+
+The rest of lines in configuration files (except the charset list) follow
+the format:
+
+	key=value
+
+Where C<key> is the lowercase name of the option, and C<value> it's contents.
+The value may be enclosed in quotas like this:
+
+	key="value with spaces"
+
+This is especially usefull for spaces, but not neccessarily required.
+
+Examples:
+
+	my_option=foobar
+	another="With spaces"
+
+=head2 charsets.lst
+
+As with other config files, comment and empty lines will be ignored.
+
+The first line B<MUST> be a line following this format:
+
+	count=number
+
+Where C<number> is the number of following charset description lines.
+
+Each charset description line follows this format:
+
+	type:id:charsetdefinition
+
+C<type> is going from 0 to 3. Here is a list:
+
+	0	SET_SIMPLE
+	1	SET_GROUPED
+	2	SET_DICTIONARY
+	3	SET_EXTRACT
+
+The C<id> is the unique ID number of the charset.
+
+The C<charsetdefinition> varies between the different types of character sets.
+	
+=over 2
+
+=item SET_SIMPLE
+
+A list of characters, in hex, seperated by C<:>.
+
+=item SET_GROUPED
+
+A list of C<pos,charset_id> pairs, seperated by C<:>.
+
+=item SET_DICTIONARY
+
+A list of C<pos,charset_id,min_length,max_length> pairs, seperated by C<:>.
+C<pos> is the position (0 - prepend, 1 - append) on where to put strings from
+C<charset_id> of length C<min_length .. max_length> to each of the words
+from the dictionary charset.
+
+=item SET_EXTRACT
+
+Empty, no options. A L<chunk description file> is used to describe the
+further options.
+
+=back
+
+
+=head2 Job description file (JDF)
+
+The JDF (formerly known as charset description file) is used when the
+C<charset_id> given to a worker is not a plain number, but a filename like
+C<../../taregt/data/42/42.set>. 
+
+The reason is that this file can contain additional parameters specific to
+each job that are impossible to carry over the command line.
+
+=over 2
+
+=item charset_id
+
+ID of the charset to use. This B<MUST> be a plain number like 5.
+
+=item password_prefix
+
+Static prefix for all passwords.
+
+This key can also be set in the chunk description file.
+
+=item dictionary_file
+
+Name of the file containing the dictionary.
+
+Only used if L<charset_id> is of the type SET_DICTIONARY.
+
+This key can also be set in the chunk description file.
+
+=item dictionary_mutations
+
+Bitfield describing the various dictionary mutations applied to each word.
+There are currently ten different mutations and the maximum value is thus
+1023.
+
+Only used if L<charset_id> is of the type SET_DICTIONARY.
+
+This key can also be set in the chunk description file.
+
+=item dictionary_stages
+
+Bitfield describing the various dictionary stages applied to each word.
+
+There are currently two, C<forward> and C<reverse>.
+
+Only used if L<charset_id> is of the type SET_DICTIONARY.
+
+This key can also be set in the chunk description file.
+
+=item password_prefix
+
+A fixed prefix for each password in the keyspace, in hex.
+
+=item extra0, extra1, extra2, ...
+
+These are extra parameters for the job, that follow this format:
+
+
+	extra0=44454647,313233
+
+The first part up to the C<,> is the parameter name (which can usually
+be ignored if there is only one expected extra parameter) and the
+second part is the parameter value.
+
+=back
+
+The job description file is read and used automatically by the
+framework.
+
+
+=head2 Chunk description file (CDF)
+
+A chunk description file is used when the normal parameters C<start>,
+C<end>, C<charset> and C<target> are not enough to describe the options
+to the worker. It also has the advantage to shorten the command line.
+
+A CDF will be used instead of a JDF when there are parameters that change
+with each chunk.
+
+Instead of calling the worker like this:
+
+	./worker start end target charset [timeout]
+
+or this:
+
+	./worker start end target charset_description_file [timeout]
+
+it will be called like this:
+
+	./worker ../../target/chunk_description_file.txt [timeout]
+
+The current reserved/used keys in the chunk description file are
+the same as in the JDF, with the following additions:
+
+=over 2
+
+=item charset_id
+
+ID of the charset to use. This can be either a plain number (like: "5") or
+a name of a L<charset description file> (like "42.set").
+
+If it is not a plain number, the file named will be opened and the options
+from there will also be used. See L<Charset description file> for details.
+
+Since it is also possible to use all the settings from a charset description
+file inside the chunk description file, it is easier to set them directly
+(in this chunk description file) instead of refering to another file (in an
+additional charset description file). But the current workerframe supports
+both ways. The current server implementation will always use a numerical
+charset ID here.
+
+=item image_file
+
+Name of the image file for extracting strings. Only used if the charset (see
+L<charset_id> is of the type SET_EXTRACT.
+
+=item start
+
+Start password, or in case of SET_EXTRAC minimum length to extract.
+
+=item end
+
+End password, or in case of SET_EXTRAC maximum length to extract.
+
+=item target
+
+Target hash or file name.
+
+=item extractset_id
+
+Only used if the L<charset_id> is of type SET_EXTRACT. Contains ID of a simple
+character set describing the strings that are valid to extract.
+
+=item extract_skip_invalids
+
+When set to a non-zero value, invalid characters will be just ignored upon
+extraction, instead of terminating the currently extracted string. 
+
+Example, assuming we extract all lower case letters, strings of length 3, and
+find this:
+
+	foo.bar
+
+If set to 0, only C<foo> and C<bar> will be extracted. If set to 1, the
+following list of strings will be extracted:
+
+	foo
+	oob
+	oba
+	bar
+
+Warning, enabling this option will generate a lot more strings, especially if
+the source contains just some random bytes. See C<extract_odd_even> for a
+more gentle way of extracting extra strings.
+
+=item extract_odd_even
+
+When extracting strings, and this option set to 1, will also extract strings
+by looking only at every odd (or later every even) byte. This will catch strings
+in simple unicode format or other formattins that are like this:
+
+	00 41 00 42 00 43 00 44		.A.B.C.D
+
+This can be combined with C<extract_skip_invalids>, but will then generate lots
+of strings.
+
+=item debug_trace
+
+When extracting passwords, will output more information about the number of
+strings extracted and the current activity. Use only in interactive mode, because
+for long runs a lot of information can be generated.
+
+C<debug_trace> is a debug level:
+
+	0		nearly no debug output
+	1		light debug output summary
+	2		extensive debug output
+
+=item dictionary_file_offset
+
+Offset into the dictionary file, at which the word from C<start> can be found.
+This enables the worker to skip quickly to the first word, instead of scanning
+the file over and over again (for each chunk).
+
+=back
+
+The following keys are normally specified in a JDF, but can also be specified
+in the CDF to make manual setups easier. See above for further information. If
+they are specified in both files, then CDF takes precedence.
+
+The current server implementation will always write only a JDF or CDF,
+depending on whether per-chunk params are necessary (CDF) or not (JDF).
+
+=over 2
+
+=item password_prefix
+
+=item dictionary_file
+
+=item dictionary_stages
+
+=item dictionary_mutations
+
+=back
+
+As with the charset description file, the chunk description file is read
+and used automatically by the framework.
+
+=head1 AUTHOR
+
+(C) Bundesamt fuer Sicherheit in der Informationstechnik 1998-2006.
+
+For licensing information please refer to the LICENSE file.
+
+=head2 Contact
+
+Address: BSI
+	 Referat 123
+	 Godesberger Alle 185-189
+	 Bonn
+	 53175
+	 Germany
+email:	 dicop@bsi.bund.de	(for public key see dicop.asc or website)
+

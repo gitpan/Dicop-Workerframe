@@ -1,0 +1,11 @@
+# chunk description file for job 0, chunk 0
+# id 300 is a SET_EXTRACT type charset
+charset_id=300
+# some empty lines to test skipping
+ 
+
+image_file=target/image000.img
+start=3
+end=3
+target=303132
+extractset_id=1

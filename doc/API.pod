@@ -1,0 +1,415 @@
+
+=pod
+
+=head1 DICOP WORKERFRAME API
+
+You can use perldoc to read this document: C<perldoc README>.
+
+=head1 DESCRIPTION
+
+After an initial overview, this document details the functions that are called
+by the workerframe main routine and need to be filled in with your code.
+
+It also describes auxilary functions that can be called by your code to
+make your development easier.
+
+=head2 Overview
+
+This is a framework for generating so-called workers (hence the name
+workerframe) for the DiCoP project. The executables are able to be run
+standalone, but their real purpose is to be run in an DiCoP cluster
+environment.
+
+So you should install the DiCoP server and client first. See
+L<http://www.bsi.bund.de/> and search for "dicop", then download and install
+the server and at least one client.
+
+This framework provides all the neccessary routines to get an "empty" worker
+done, e.g. something that just walks a bit of a password/key space and
+applies an "empty check" (e.g. none at all) to each password/key.
+
+Workers are usually called by the DiCoP client and take their arguments from
+the commandline and/or additional files. They print their results to
+STDOUT, which is then collected by the client.
+
+All the initialization is done by the framework. The framework contains a
+password generator (actually more than one), and this generator cycles through
+all passwords/keys in the given range and calls a check function (called
+C<dofunction>) for each password/key.
+
+So all you need to do is to fill in the actual test for the current
+password or key into C<dofunction> and your are set! Please see
+C<src/test/test.c> for an example.
+
+=head2 Character sets
+
+The framework can walk password/key rooms that are described by different
+types of character sets. However, from the point of view of C<dofunction()>
+it is irrelevant which passwords in which order are generated - it simple
+checks one by one.
+
+The following charset types are currently supported:
+
+=over 2
+
+=item SIMPLE
+
+Simple character sets consist of a list of C<characters> (currently each
+character is only one byte long, but that will be fixed sometime). The keys
+consist of a list of C<words>, which are simple strung together from the
+characters. Here is an example for a charset consisting of C<A>, C<B>, and
+C<C>:
+
+	A
+	B
+	C
+	AA
+	AB
+	AC
+	BA
+	BB
+	BC
+	CA
+	CB
+	CC
+	AAA
+	and so on
+
+Note that the actual value of the characters and their ordering are
+not important. This means you can have a simple set consisting of C<C>, C<B>i
+and C<A>, as well as C<0>, C<A>, C<a> or whatever combination of characters
+you need.
+
+=item GROUPED
+
+A grouped charset consist of a default charset, and a list of positions and
+corrosponding simple charsets. At each of the positions either the default
+charset, or the simple one listed for this position is taken. The positions
+can count from left (positive) or right (backwards, negative). Thus it is
+possible to describe passwords like:
+
+	The first position is a number, upper or lower case letter
+	The last position is always a number
+	The next-to-last position is also always a number
+	Every other position is a lower case letter
+
+=item DICTIONARY
+
+A dictionary charset takes an external, sorted dictionary file and walks
+through each of the words in the dictionary. Each of the words is put through
+one or more different stages (currently two exist: forward and reverse), and
+in turn each of these stages is mutated through one or more lower/upper case
+mutations (currently 10 different ones exist, among them are all lower case,
+all upper case, first upper case etc).
+
+=item EXTRACT
+
+The passwords are extracted on-the-fly from an image file (either a diskimage,
+or an ordinary file). Doubles are discarded and the remaining passwords are
+then feed to the C<dofunction()>.
+
+=back
+
+In addition, each of these types can be combined with a fixed prefix.
+This prefix can have any length and consist of any characters, even ones that
+are not part of the "normal" character set. The generated password will be
+appended to this fixed prefix and the final password will thus be the
+combination of the prefix with the generated password.
+
+The character sets (charsets for short) are maintained at the server, and sent
+to the worker via the means of a charset description file (usually named
+C<charsets.def>) as well as job character description files (which contain
+data that changes from job to job, like the password prefix).
+
+In addition, a short description file of all the options can be send from the
+server to the client. Instead of passing the options on the commandline,
+only the name of the options file will be passed. The workerframe will read
+all it's arguments and options from there. This file is discared afterwards.
+
+The idea behind this to keep the system simple, the communication
+human-readable (thus easily debuggable) and avoid dependecies on external
+libraries and third-party applications as much as possible. The workers
+should (and do) be able to run as simple programs on a text-console, with no
+dependecies except for some standard c library. This makes it easier to deploy
+them on systems with quite different operating systems or hardware.
+
+=head2 Worker description
+
+This is an in-depth explanation if the workerframe and the resulting workers
+and how they fit into the DiCoP client/server environment. Impatient readers
+can skip to L<INSTALLATION|INSTALLATION>.
+
+The DiCoP system consists mainly of 3 parts:
+
+=over 2
+
+=item server
+
+This is (usually) the dicopd daemon, running at a dedicated machine.
+
+=item client(s)
+
+The clients usually run on multiple machines. Note that usually the server
+machine does not run a client, due to performance reasons, but there is
+actually nothing that prevents you from running a client on it.
+
+=item worker
+
+Each client machine als runs a worker (at a time). There exist multiple worker
+programs, each for a different problem. The client will select the proper
+worker and run only one at a time. For SMP machines, it is possible to start
+two or more clients and have them run different workers at the same time, but
+Linux, f.i. is also able to distribute one running worker across two or
+more CPUs - albait this is not as effective as simple running two clients at
+the same time and bind each of them to one CPU.
+
+=back
+
+The DiCoP server distributes a job over multiple (at least one) clients. It
+does this by slicing the key room (e.g. all the things that need to be done)
+into little parts, called I<chunks>. Each chunk will be given to one of the
+clients, until all chunks are I<checked>. Usually the work consists of a check
+whether a chunk contains a I<solution> to the problem at hand or not, and
+usually this is done by checking all keys in a given chunk one by one.
+
+The clients in turn get their I<chunk> from the server, and just pass it on to
+a worker, which is basically a program that does the actual checking for each
+key.
+
+So the server does all the management and distribution work.
+
+The client does the talking to the server and just hands the chunk to the
+worker. The client is also responsible for updating the workers and other
+files (including the client itself) when the server tells him that this is
+neccessary.
+
+The beauty of this setup is that a worker does not need to care about anything
+that is related to key distribution, management, network access etc. The only
+thing it does is to receive a key room (specified by C<start> and C<end> key)
+and a charset (which describes which keys the key room contains) and walks
+through the given key room. A worker executable can be run from the command
+line to simulate a call from the client to it, this eases debugging and
+testing. 
+
+To simplify the development of workers further, the common parts were
+relocated into the workerframe. This frame manages all the boring things
+like the interaction between client and worker, the setup of the password
+generator (which is the thing that know how to walk the keyroom from C<start>
+to C<end>) and then the actual generating of all keys in the key room.
+
+=head2 Fill-in with your code
+
+The only things one needs to develop are:
+
+=over 2
+
+=item printinfo()
+
+A simple routine printing out copyright and version info.
+
+=item initfunction()
+
+A routine the sets the worker up. Sometimes it is usefull to allocate memory,
+or calculate tables, and this is done here. Usually this is just an empty
+routine that returns 0 to signal C<all okay>.
+
+=item dofunction()
+
+This function will be called for each key to check. Returns C<0> for when the
+given key is the solution, and C<2> for when the key is not. This is the main
+part and usually the only part that differs from worker to worker (except the
+version and copyright, of course).
+
+This function has three possible return values:
+
+	PWD_FAIL		the current password IS NOT the right one
+	PWD_SUCCESS		the current password IS the right one
+	PWD_ERROR		some critical error occured, abort
+
+=item stopfunction()
+
+Called at the very end after the password generator finished and after
+L<endfunction>.
+Usually empty since not neccessary in most cases.
+
+=item endfunction()
+
+Called after at the very end when the worker has done all keys.
+Usually empty since not neccessary in most cases.
+
+=back
+
+Here is a short overview in pseudo-code:
+
+	... start worker ...
+	printinfo();
+	... check arguments ...
+	... init password generator ...
+	initfunction();
+	for each key
+	  {
+	  dofunction();
+	  }
+	endfunction();
+	stop_password_generator();
+	stopfunction();
+	... end worker ...
+	
+That's all, folks!
+
+=head2 Other functions
+
+There are a couple of functions you can use to make your work easier:
+
+=over 2
+
+=item pwdgen_add(struct ssPWD* sPWD, unsigned int count)
+
+	pwdgen_add(pwd,123);
+
+Add's the given number to the counter of already done passwords. The counter
+is automatically incremented for each call to C<dofunction()>. However, if
+your C<dofunction()> does check more than one password per call (by
+artificially inflating the password room), you may call C<pwdgen_add()> and
+adjust the counter (but only upwards).
+
+So if your C<dofunction()> checks two passwords (like the given one, and
+thenit's reversed form), you may call:
+
+	pwdgen_add(pwd,1);
+
+=item void pwdgen_found(struct ssPWD* sPWD, unsigned char* string, unsigned int pwdlen)
+
+
+If the found solution isn't exactly what the pwd generator is looping through,
+you can override the output by specifying it via C<pwdgen_found()>. The last
+parameter is the length of the string passed in as C<string>.
+
+Like:
+
+	pwdgen_found(pwd, &real_password[0], 42);
+
+=item pwd pwdgen_update_crc (unsigned char* string, unsigned int len);
+
+Modifies the crc of this chunk with C<len> bytes from C<string>. C<string>
+should contain data that depends on the plain-text derived from the current
+key. (E.g. not the key alone). This is used to verify that the worker
+actually did the work (test and check key) and not just cycled through all
+keys.
+
+=item unsigned char* pwdgen_find_file ( unsigned char* file, unsigned char* options );
+
+Tries to find a file from it's given name in current dir and one
+or two dirs up. Upon success returns the file name under which the
+file can be accessed, otherwise NULL.
+
+=item struct ssKey* pwdcfg_find_key ( struct ssKey* config, unsigned char* key, unsigned long fail );
+
+Tries to find the key with the name C<key> in the list of options read from the
+config file stored in C<config>. The C<config> field from the C<pwd> struct is
+typically passed as first argument to this function.
+
+Returns NULL if the key could not be found, or the pointer to the key structure,
+where the key name and it's value can be found.
+
+For C<fail>, pass one of C<CFG_FAIL> or C<CFG_NOFAIL>. If C<CFG_FAIL> is passed,
+the routine will terminate the worker upon not finding the key - perfect for
+keys that absolutely have to exist. Use C<CFG_NOFAIL> for keys that are optional.
+
+=item unsigned long pwdcfg_as_int ( struct ssKey* config, unsigned char* key, unsigned long fail );
+
+Tries to find the key with the name C<key> in the list of options read from the
+config file stored in C<config> and returns it's value as an integer number.
+The C<config> field from the C<pwd> struct is typically passed as first argument
+to this function.
+
+For C<fail>, pass one of C<CFG_FAIL> or C<CFG_NOFAIL>. If C<CFG_FAIL> is passed,
+the routine will terminate the worker upon not finding the key - perfect for
+keys that absolutely have to exist. Use C<CFG_NOFAIL> for keys that are optional.
+
+=item unsigned long pwdcfg_keys_exist ( struct ssKey* config, unsigned char* keynames, unsigned long options );
+
+Tries to find the all the keys found in a comma separated list in C<keynames> in
+the list of options read from the config file stored in C<config>.
+The C<config> field from the C<pwd> struct is typically passed as first argument
+to this function.
+
+If C<options> is C<CFG_NOFAIL>, returns the number of B<not> found keys, and zero
+if all of them could be found.
+
+If C<options> is C<CFG_FAIL>, it will call C<exit()> when one of the keys could
+not be found. Otherwise it returns zero.
+
+After the call to this function you can be certain that all the keys in the list
+exists, meaning you can skip these checks later on.
+
+=back
+
+=head2 Fields in the ssPwd struct
+
+The C<ssPwd> struct contains the current state of the password generator and is
+used by C<dofunction> to access the current password/key and test it against the
+target key (or hash or whatever the target represents).
+
+You code (either in C<dofunction> or anywhere else) should B<NEVER> modify the values
+in this structure - they are strictly read-only.
+
+Here follows a short overview over the fields that are intended for public use and
+their meanings and typical contents:
+
+=over 2
+
+=item unsigned char pwd[]
+
+Contains the current password. Do not rely on the zero termination of the password,
+especially in cases where the actual password could contain zero bytes itself. Use
+the field C<length> to find out how many bytes C<pwd> is long.
+
+=item long length
+
+Stores how many bytes the C<pwd> field is long.
+
+=item long overflow
+
+Contains the number of characters that changed from the last password to the current
+one. If the passwords are sequentiell (like in SIMPLE charsets), it will contain
+mostly 1 (e.g. the real amount of overflowed characters). It might contain simple
+the length of the password to denote that all characters have changed, even when
+they did not.
+
+You can use to optimize your checking routine in certain cases by caching some
+info about the last password.
+
+=item struct ssKey* config
+
+Pointer to the head node of a double linked list containing the current config. This
+is usually a per-chunk configuration file. Will be NULL if there was no config file.
+
+Use the function C<pwdgen_find_key()> to access individual keys in the config. 
+
+=item unsigned char target[]
+
+Contains the target hash. Usually zero terminated, but do not rely on this.
+Use the field C<targetlen> to find out how many bytes C<target> is long.
+
+=item long targetlen
+
+Stores how many bytes the C<target> field is long.
+
+=back
+
+=head1 AUTHOR
+
+(C) Bundesamt fuer Sicherheit in der Informationstechnik 1998-2006.
+
+For licensing information please refer to the LICENSE file.
+
+=head2 Contact
+
+Address: BSI
+	 Referat 123
+	 Godesberger Alle 185-189
+	 53175 Bonn
+	 Germany
+email:	 dicop@bsi.bund.de	(for public key see dicop.asc or website)
+

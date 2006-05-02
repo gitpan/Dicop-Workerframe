@@ -1,0 +1,60 @@
+
+=pod
+
+=head1 Dictionary attacks
+
+You can use perldoc to read this document: C<perldoc README>.
+
+Last update: 2006-04-05
+
+=head2 Introduction
+
+Not done yet.
+
+=head2 Mutations/Stages
+
+Not done yet.
+
+=head1 Manual setup
+
+Each worker can automatically do dictionary based attacks, since this is build
+into the workerframe.
+
+You just need to write a config file like this one:
+
+	# Config file for extract
+	# a dictionary charset
+	charset_id=123
+	# leave start/end empty, these will be filled in automatically
+	# optionally, put in a hex string for the start or end word
+	start=
+	end=
+	# target hash or file
+	target=1234567890
+	# will try to load ../target/dictionaries/somewords.lst
+	dictionary_file=somewords.lst
+	# 1, 2, or 3, see above
+	dictionary_stages=3
+	# 1 .. 1023, see above
+	dictionary_stages=1023
+
+The charsets are defined in the file C<charsets.def>, found in the worker dir.
+
+Put this file into the same dir as the worker as C<dict.cfg>, together with the
+C<charsets.def> file. Then call:
+
+	./worker dict.cfg
+
+This will try all words from the dictionary, with suitable mutations and stages.
+
+Enjoy!
+
+=head1 AUTHOR
+
+(c) Bundesamt fuer Sicherheit in der Informationstechnik 1998-2006
+
+The DiCoP Workerframe falls under the BSD license.
+
+See the file LICENSE or L<http://www.bsi.de/> for more information.
+
+=cut

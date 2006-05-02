@@ -1,0 +1,10 @@
+password_prefix=""
+dictionary_file="testdict.txt"
+# 1 - lowercase
+# 2 - UPPERCASE
+dictionary_mutations=3
+#   1 forward
+#   2 reverse
+dictionary_stages=3
+# prepend 0..9, a..z
+charset_id=105

@@ -1,0 +1,10 @@
+# chunk description file for job 0, chunk 0
+# id 300 is a SET_EXTRACT type charset
+# extract strings with embedded zeros and lineends
+charset_id=300
+image_file=target/image003.img
+start=3
+end=5
+target=303132
+# all bytes
+extractset_id=14

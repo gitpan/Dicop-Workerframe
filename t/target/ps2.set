@@ -1,0 +1,8 @@
+password_prefix="5072656669783132"
+dictionary_file="testdict.txt"
+# 2 - UPPERCASE
+dictionary_mutations=2
+#   1 forward
+#   2 reverse
+dictionary_stages=3
+charset_id=100

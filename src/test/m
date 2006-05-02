@@ -1,0 +1,2 @@
+gcc -O3 -Wall ../main/*g.o test.c -o test
+strip test

@@ -1,0 +1,8 @@
+# chunk description file for job 0, chunk 0
+# id 300 is a SET_EXTRACT type charset
+charset_id=300
+image_file=target/image001.img
+start=4
+end=7
+target=303132
+extractset_id=32

@@ -1,0 +1,4 @@
+
+icc -O2 -I/opt/intel/compiler50/ia32/include/ ../main/*i.o extract.c -o extracti
+rm *.il
+strip extracti

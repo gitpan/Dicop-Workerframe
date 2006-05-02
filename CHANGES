@@ -1,0 +1,83 @@
+
+=pod
+
+=head1 History revision for Dicop-WorkerFrame
+
+This document details all the changes for v2.15 - for an older changelog
+please see the C<CHANGES-2.14> file.
+
+=head2 2006-05-02 (v2.16)
+
+=over 2
+
+=item fixed
+
+	fix dict.t failing due to machines being to fast
+	fix (C) messages and contact info
+	add SIGNATURE for CPAN
+	remove a few needless #include statements
+	remove needless double change lists in source files
+	fix a few unsigned vs. signed warnings from gcc
+	fix t/extract2.t to work properly
+	16986 tests
+
+=back
+
+=head2 2005-04-20 (v2.15 build 3)
+
+=over 2
+
+=item fixed
+
+	forgot to include t/par.t into MANIFEST
+	error message about number of arguments
+	add "const" to some arguments that are not supposed to change
+	wcr src: Total: lines 6098, words 24929, chars 171821
+	16334 tests
+
+=back
+
+=head2 2005-03-17 (v2.15 build 2)
+
+=over 2
+
+=item fixed
+
+	mark src/pwdblock as outdated
+	main.c: supports now parallel (pwds in blocks) interface
+
+=item added
+
+	src/main/hexdump.c and src/include/hexdump.h
+	src/test_par - parallel interface
+	wcr src: Total: lines 6088, words 24861, chars 171364
+	16334 tests
+
+=back
+
+=head2 2005-03-16 (v2.15 build 1)
+
+=over 2
+
+=item added
+
+	add a blurb to each .c file in src/main about it's contents
+	fix (c) years to 2005
+	doc/Parallel.pod
+	src/main/pwd_par.c
+	16024 tests
+
+=back
+
+=head1 AUTHOR
+
+(c) Bundesamt fuer Sicherheit in der Informationstechnik 1998-2006
+
+DiCoP is free software; you can redistribute it and/or modify it under the
+terms of the GNU General Public License version 2 as published by the Free
+Software Foundation.
+
+See the file LICENSE or L<http://www.bsi.de/> for more information.
+
+=cut
+

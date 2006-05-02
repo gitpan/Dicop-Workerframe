@@ -1,0 +1,7 @@
+world
+disk
+elephant
+turtle
+space
+hub
+rim

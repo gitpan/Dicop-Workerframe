@@ -1,0 +1,67 @@
+
+=pod
+
+=head1 Todo (laundry list)
+
+=over 2
+
+=item *
+
+Fix signed/unsigned comparisation issues as gcc warns
+
+=item *
+
+Support for UniCode and multi-byte characters in general password generator.
+
+This needs a full-blown Unicode support, for converting from ASCII to utf8,
+utf16, and vice versa. Along with checking/validating etc. Ugh.
+
+=item *
+
+Proper Makefile generation etc.
+
+=item *
+
+Use "const" in C-Sources.
+
+=item *
+
+Pwdgen: check that C<start> is actually smaller than C<end> for SIMPLE and
+GROUPED character sets.
+
+=item *
+
+OS independend file access, the "/" vs. "\" trickery is a hack. *sigh* It's
+C and we can't just use File::Spec...
+
+=back
+
+=head2 Extraction code
+
+=over 2
+
+=item *
+
+Maybe padd extracted strings to multiples of 4 bytes for speed.
+
+=item *
+
+index sort (sort indices instead of strings) for speed? Similiar,
+implement shellsort (see Sedgewick) for speed?
+
+=item *
+
+could limit it's memory usage better (use more available memory).
+
+=item *
+
+does not yet handle a timeout (make and re-use a global sub for this)
+
+=item *
+
+could use gzip to support gzipped images.
+
+=back
+
+=cut
+

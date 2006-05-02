@@ -1,0 +1,9 @@
+gcc -gdwarf-2 -O3 -c -Wall pwdsort.c -o pwdsortg.o
+gcc -gdwarf-2 -O3 -c -Wall pwdcfg.c -o pwdcfgg.o
+gcc -gdwarf-2 -O3 -c -Wall pwdgen.c -o pwdgeng.o
+gcc -gdwarf-2 -O3 -c -Wall pwddict.c -o pwddictg.o
+gcc -gdwarf-2 -O3 -c -Wall pwdread.c -o pwdreadg.o
+gcc -gdwarf-2 -O3 -c -Wall dicop.c -o dicopg.o
+gcc -gdwarf-2 -O3 -c -Wall pwd_img.c -o pwd_imgg.o
+gcc -gdwarf-2 -O3 -c -Wall main.c -o maing.o
+

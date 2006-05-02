@@ -1,0 +1,9 @@
+# chunk description file for job 0, chunk 0
+# example file for bad input
+charset_id=300
+# malformed line
+=
+image_file=image000.img
+start=3
+end=3
+target=303132

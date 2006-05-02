@@ -1,0 +1,16 @@
+password_prefix=5072656669783132
+dictionary_file="testdict.txt"
+#   1 lowercase
+#   2 UPPERCASE
+#   4 lOWERFIRST
+#   8 Upperfirst
+#  16 LOWERLASt
+#  32 upperlasT
+#  64 uPpErOdD
+# 128 UpPeReVEn
+# 256 UppErvOwEls
+# 512 uPPeRCoNSoNaNTS
+dictionary_mutations=1023
+#   1 forward
+dictionary_stages=1
+charset_id=100

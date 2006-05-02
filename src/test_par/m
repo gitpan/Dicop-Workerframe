@@ -1,0 +1,2 @@
+gcc -O3 -Wall ../main/*g.o test_par.c -o test_par
+strip test_par

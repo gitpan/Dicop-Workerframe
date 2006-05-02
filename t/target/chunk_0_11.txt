@@ -1,0 +1,11 @@
+# chunk description file for job 0, chunk 0
+# id 300 is a SET_EXTRACT type charset
+# carefully crafter, image has only strings of len 9, so len 10 is empty
+# and this causes problems with the "last password tested" string
+# also exposed bug in pwdgen_init()
+charset_id=300
+image_file=target/image001.img
+start=9
+end=10
+target=303132
+extractset_id=6

@@ -1,0 +1,9 @@
+---
+name: Dicop-Workerframe
+version: 2.16
+version_from: src/include/dicop.h
+license: bsd
+distribution_type: module
+generated_by: Dicop-Workerframe version 2.16
+installdirs: none
+requires: {}

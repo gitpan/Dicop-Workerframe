@@ -6,6 +6,35 @@
 This document details all the changes for v2.15 - for an older changelog
 please see the C<CHANGES-2.14> file.
 
+=head2 2006-12-20 (v2.17 rev 384)
+
+Too many things have changed to be listed here, so this is just a short
+overview. Please note that the API has changed slightly, you must adapt
+you code to the new function calling style!
+
+See the example in src/test/test.c for guidance.
+
+=over 2
+
+=item fixed
+
+	build a real Makefile in Makefile.PL
+	remove needless "mi" and "mg" files
+	remove broken Umlaut handling in lc(), uc(), a2h() and h2a()
+	fix compilation to work again after shuffling of include files
+	convert all *.c and *.h to unix line endings again
+        remove needless double includes, fix prototypes of a2h() and h2a()
+	sprinkle some const qualifiers
+	fix the unsigned vs. signed warnings from compilers
+	define handy macros for libtomcrypt support in dicop.h
+	define macros for file support (read/open(close) with error handling
+	very large file support (> 2GB)
+	remove the outdated pwdblock worker example
+	add Doxygen support
+	16675 tests
+
+=back
+
 =head2 2006-05-02 (v2.16)
 
 =over 2

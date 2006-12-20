@@ -1,27 +1,33 @@
 BUGS
+build/Doxyfile			# configuration for English Doxygen generated doc
+build/Doxyfile-de		# configuration for German Doxygen generated doc
+build/gen_patch_h.pl		# generate src/include/patch.h from patch.tpl
+build/patch.tpl
+build/README
 CHANGES
 CHANGES-2.14
-LICENSE
-MANIFEST
-META.yml                                 Module meta-data (added by MakeMaker)
-Makefile.PL
-README
-TODO
-SIGNATURE
 dicop.asc
 doc/API.pod
 doc/Config.pod
 doc/Dict.pod
 doc/Extract.pod
 doc/Parallel.pod
+lib/README
+LICENSE
+Makefile.PL
+MANIFEST
+MANIFEST.SKIP
+META.yml			Module meta-data (added by MakeMaker)
+README
+SIGNATURE
 src/extract/extract.c		extract worker
-src/extract/m
-src/extract/mg			compile with GCC and debugging
-src/extract/mi
 src/include/dicop.h
+src/include/dicop_unused.h
 src/include/hexdump.h
+src/include/patch.h		build and revision number
 src/include/pwd_img.h		for pwd_img.c
 src/include/pwd_par.h		for pwd_par.c
+src/include/pwd_util.h		for pwd_util.c
 src/include/pwdcfg.h
 src/include/pwddict.h
 src/include/pwdgen.h
@@ -29,33 +35,20 @@ src/include/pwdread.h
 src/include/pwdsort.h
 src/main/dicop.c
 src/main/hexdump.c
-src/main/m			compile with GCC
 src/main/main.c			workerframe
-src/main/mg			compile with GCC and debugging
-src/main/mi			compile with Intel compiler
 src/main/pwd_img.c		password extractor (from image files)
 src/main/pwd_par.c		password block gathering
+src/main/pwd_util.c		utility functions for file I/O, error handling etc
 src/main/pwdcfg.c		general config file reader
 src/main/pwddict.c		password dictionary mutator
 src/main/pwdgen.c		password generator
 src/main/pwdread.c		password generator init: read charsets.def file
 src/main/pwdsort.c		sort routines
-src/mitest			compile with Intel compiler
-src/mtest			compile with GCC
-src/pwdblock/m
-src/pwdblock/mi
-src/pwdblock/pwdblock.c		test worker for batch/block pwd tests
-src/pwdtest/m
-src/pwdtest/mi
 src/pwdtest/pwdtest.c		test worker for test suite
-src/test/m
-src/test/mi
 src/test/test.c			empty test worker
-src/test_par/m
 src/test_par/test_par.c		empty test parallel worker
-t/00_compile.t			compile testworker for worker.t
 t/bad.t				check bad input handling of generator
-t/block.t			test framework with pwdblock
+t/charsets.def
 t/dict.t			test framework with dictionary sets
 t/dictlist.t			test framework with dictionaries and appended
 t/dictlist2.t			test framework with dictionaries and appended
@@ -144,10 +137,10 @@ t/target/chunk_1_0.txt		dictionary with file offset
 t/target/chunk_1_1.txt		dictionary with file offset
 t/target/chunk_2_0.txt		dictionary with file offset in chunk description file
 t/target/chunk_2_1.txt		dictionary with file offset in chunk description file
-t/target/extract.txt
 t/target/dictionaries/testdict.txt	normal dictionary
 t/target/dictionaries/testdict1.txt	dictionary with some number-word
 t/target/dictionaries/testdict2.txt	larger dictionary
+t/target/extract.txt
 t/target/image000.img		test images for extracting strings
 t/target/image001.img
 t/target/image002.img
@@ -168,7 +161,7 @@ t/target/ps1023.set		forward, reverse, etc
 t/target/ps2.set		forward, reverse, etc
 t/target/ps3.set		forward, reverse, upper, lower, prefix + dict
 t/target/ps42.set		forward, reverse, prefix + dictionary
-t/test-worker/charsets.def
-t/test-worker/linux/dummy.txt
-t/worker.inc			actual tests for block.t and worker.t
+t/test-worker/README
+t/worker.inc			actual tests for worker.t
 t/worker.t			test framework with pwdtest
+TODO

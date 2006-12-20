@@ -27,7 +27,7 @@ BEGIN
   plan tests => 100;
   }
 
-chdir 'test-worker/linux/';
+chdir 'test-worker/';
 my (@args);
 while (<DATA>)
   {

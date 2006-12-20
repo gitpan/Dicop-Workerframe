@@ -1,56 +1,64 @@
-/*
-
-  Copyright (c) 1998-2006,
-  Bundesamt fuer Sicherheit in der Informationstechnik (BSI)
-
-  This file is part of Dicop-Workerframe. For licencing information see the
-  file LICENCE in the distribution, or http://www.bsi.bund.de/
-
+/*!
+ * @file
+ * @ingroup workerframe
+ * @brief Header file for config file management for Dicop workers.
+ * 
+ * @copydoc copyrighttext
 */
 
-/* when searching for a key, return 0 if it doesn't exist */
+#ifndef DICOP_PWDCFG_H
+#define DICOP_PWDCFG_H
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "pwd_util.h"
+
+/** when searching for a key, return 0 if it doesn't exist */
 #define CFG_NOFAIL 0
-/* when searching for a key, die/exit it doesn't exist */
+/** when searching for a key, die/exit if it doesn't exist */
 #define CFG_FAIL 1
 
-/* one key=value pair */
+/** @brief Defines one key=value pair in a Dicop config file.
 
+    Lengths include the terminating zero, so 'abc\\0' has len==4
+*/
 struct ssKey
   {
-  /* lengths include the terminating zero, so 'abc\x00' has len==4 */
-  unsigned int len;			/* length of key */
-  unsigned int valuelen;		/* length of value */
-  unsigned char key[128];		/* the key */
-  unsigned char* value;			/* ptr to the value */
-  struct ssKey* next;			/* double linked list */
-  struct ssKey* prev;			/* double linked list */
+  unsigned int len;			/**< length of key */
+  unsigned int valuelen;		/**< length of value */
+  char key[128];			/**< the key name */
+  char* value;				/**< ptr to the value of this key */
+  struct ssKey* next;			/**< next key in the double linked list */
+  struct ssKey* prev;			/**< prvious key in the double linked list */
   };
 
-/* read in the config file */
-struct ssKey* pwdcfg_read ( unsigned char* filename );
+/** Read in the entire config file. */
+struct ssKey* pwdcfg_read ( const char* filename );
 
-/* find a specific key or return NULL */
+/** Find a specific key or return NULL. */
 struct ssKey* pwdcfg_find_key (
-	struct ssKey* keys,
-	unsigned char* key,
-	unsigned long fail);
+	const struct ssKey* keys,
+	const char* key,
+	const unsigned long fail);
 
-/* check that the all keys in the comma separated list exists */
+/** Check that the all keys in the comma separated list exist. */
 unsigned long pwdcfg_keys_exist (
-	struct ssKey* keys,
-	unsigned char* keynames,
-	unsigned long options );
+	const struct ssKey* keys,
+	const char* keynames,
+	const unsigned long options );
 
-/* Find a key, and return it's value as int. */
+/** Find a key, and return it's value as int. */
 int pwdcfg_as_int (
-	struct ssKey* cfg,
-	unsigned char* keyname,
-	unsigned long fail);
+	const struct ssKey* cfg,
+	const char* keyname,
+	const unsigned long fail);
 
-/* check all keys against a list of valid ones and exit()/return error on
-   invalid ones */
+/** Check all keys against a list of valid ones and exit()/return error on
+   invalid ones. */
 unsigned long pwdcfg_valid_keys (
-	struct ssKey* cfg,
-	unsigned char* keynames,
-	unsigned long options );
+	const struct ssKey* cfg,
+	const char* keynames,
+	const unsigned long options );
 
+#endif

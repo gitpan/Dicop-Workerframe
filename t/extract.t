@@ -12,9 +12,9 @@ BEGIN
   plan tests => 634;
   }
 
-my $updir = File::Spec->updir(); $updir = File::Spec->catdir($updir,$updir);
+my $updir = File::Spec->updir();	# '..'
 
-chdir 'test-worker/linux/';
+chdir 'test-worker/';
 my (@args);
 while (<DATA>)
   {

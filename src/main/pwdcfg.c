@@ -1,24 +1,13 @@
-/*
-
-  Config file reading
-
-  Copyright (c) 1998-2006,
-  Bundesamt fuer Sicherheit in der Informationstechnik (BSI)
-
-  This file is part of Dicop-Workerframe. For licencing information see the
-  file LICENCE in the distribution, or http://www.bsi.bund.de/
-
-  For general reading of description files following the key=value format.
-
+/*!
+ * @file
+ * @ingroup workerframe
+ * @brief Config file reading/management for Dicop workers.
+ * 
+ * @copydoc copyrighttext
 */
 
-//#define DEBUG 1
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-#include "../include/pwdgen.h"
+#include <pwdgen.h>
+#include <pwd_util.h>
 
 /* ************************************************************************* */
 /* INTERNAL: read a config/description file with key=value format
@@ -30,16 +19,16 @@
 /* maximum length of a line */
 #define BUFSIZE 64 * 1024
 
-struct ssKey* pwdcfg_read ( unsigned char* cfgfile )
+struct ssKey* pwdcfg_read ( const char* cfgfile )
   {
   int linenr;
   unsigned int count, i, n;
   unsigned int extracted = 0;
   FILE *file;
   struct ssKey* keys, *current, *last;
-  unsigned char line[BUFSIZE+16];	/* input lines up to BUFSIZE characters */
-  unsigned char name[BUFSIZE+16];	/* key */
-  unsigned char value[BUFSIZE+16];	/* value */
+  char line[BUFSIZE+16];		/* input lines up to BUFSIZE characters */
+  char name[BUFSIZE+16];		/* key */
+  char value[BUFSIZE+16];		/* value */
 
 
   printf (" Opening config file '%s'.\n", cfgfile);
@@ -203,12 +192,12 @@ struct ssKey* pwdcfg_read ( unsigned char* cfgfile )
     current->prev = last;
     current->next = NULL;
     /* key names are at most 128 characters */
-    strncpy (current->key, name, 128);
-    current->len = strlen(name) + 1;
+    strncpy ((char *)current->key, name, 128);
+    current->len = strlen((char *)current->key) + 1;
     /* allocate memory for value and copy it */
     n++;
     current->value = malloc ( sizeof(char) * n);
-    strncpy (current->value, value, n);
+    strncpy ((char *)current->value,value, n);
     current->valuelen = n;
     printf ("  Extracted '%s=%s'\n", current->key, current->value);
     last = current;
@@ -225,9 +214,9 @@ struct ssKey* pwdcfg_read ( unsigned char* cfgfile )
    message, otherwise returns NULL (or the ptr to the key)
 */
 
-struct ssKey* pwdcfg_find_key ( struct ssKey* keys, unsigned char* key, unsigned long fail )
+struct ssKey* pwdcfg_find_key (const struct ssKey* keys, const char* key, const unsigned long fail )
   {
-  struct ssKey* current = keys;
+  const struct ssKey* current = keys;
   unsigned int len;
 
   len = strlen(key) + 1;
@@ -242,7 +231,7 @@ struct ssKey* pwdcfg_find_key ( struct ssKey* keys, unsigned char* key, unsigned
 #ifdef DEBUG
     printf (" at key '%s' with len %i\n", current->key, current->len);
 #endif 
-    if ((len == current->len) && (0 == strncmp (current->key, key, len)))
+    if ((len == current->len) && (0 == strncmp ((const char *)current->key,(const char *) key, len)))
       {
       /* found it */
       return current;
@@ -264,12 +253,12 @@ struct ssKey* pwdcfg_find_key ( struct ssKey* keys, unsigned char* key, unsigned
    return codes: 0	- okay
 		 X	- count of not found keys 	*/
 
-unsigned long pwdcfg_keys_exist ( struct ssKey* cfg, unsigned char* keynames, unsigned long fail )
+unsigned long pwdcfg_keys_exist (const struct ssKey* cfg, const char* keynames, const unsigned long fail) 
   {
   struct ssKey* key;
   unsigned long i = 0;		/* index into string */
   unsigned long n;		/* index into name */
-  unsigned char name[256];	/* current key name */
+  char name[256];		/* current key name */
   unsigned long len;		/* length */
   unsigned long rc = 0;		/* return code */
 
@@ -311,15 +300,17 @@ unsigned long pwdcfg_keys_exist ( struct ssKey* cfg, unsigned char* keynames, un
    return codes: 0	- okay
 		 X	- count of invalid keys 	*/
 
-unsigned long pwdcfg_valid_keys ( struct ssKey* cfg, unsigned char* keynames, 
- unsigned long options )
+unsigned long pwdcfg_valid_keys (
+	const struct ssKey* cfg,
+	const char* keynames, 
+	const unsigned long options )
   {
   struct ssKey* key;
   unsigned int valid, i, invalid, n;
-  unsigned char name[256];		/* current key name */
   unsigned long len;			/* length */
   unsigned long keys;			/* count of key names */
-  unsigned char names[256][128];	/* key names */
+  char name[256];			/* current key name */
+  char names[256][128];			/* key names */
 
   if (NULL == cfg)
     {
@@ -343,7 +334,7 @@ unsigned long pwdcfg_valid_keys ( struct ssKey* cfg, unsigned char* keynames,
     if (n > 0)
       {
       /* copy the name */
-      strncpy (names[keys], name, 128); keys++;
+      strncpy (names[keys],name, 128); keys++;
       }
     } /* end while for all characters */
 
@@ -354,7 +345,7 @@ unsigned long pwdcfg_valid_keys ( struct ssKey* cfg, unsigned char* keynames,
     valid = 0;
     for (i = 0; i < keys; i++)
       {
-      if (0 == strncmp(key->key, &names[i][0], 128))
+      if (0 == strncmp((char *)key->key, &names[i][0], 128))
         {
         valid = 1;
         }
@@ -374,21 +365,24 @@ unsigned long pwdcfg_valid_keys ( struct ssKey* cfg, unsigned char* keynames,
   }
 
 /* ************************************************************************ */
-/* Find a key, and return it's value as int. Call exit(1) if it doesn't exist.
-   Use find_key or keys_exist to check beforehand that key really exists.
+/* Find a key, and return its value as int. Returns 0 if it doesn't exist.
+   You should use pwdcfg_find_key() or pwdcfg_keys_exist() to check
+   beforehand that key really exists.
 
-   return codes: int */
+   return codes: int value
+*/
 
-int pwdcfg_as_int ( struct ssKey* cfg, unsigned char* keyname, unsigned long fail )
+int pwdcfg_as_int (const struct ssKey* cfg, const char* keyname, const unsigned long fail )
   {
   struct ssKey* key;
 
-  key = pwdcfg_find_key ( cfg, keyname, fail);
+  key = pwdcfg_find_key (cfg, keyname, fail);
   if (NULL == key)
     {
     printf ("Warning: Key '%s' does not exist in config - defaulting to 0.\n", keyname);
     return 0;
     }
   /* XXX TODO: should check that value is a number */
-  return atoi(key->value);
+  return atoi((const char *)key->value);
   }
+

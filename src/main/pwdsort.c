@@ -1,23 +1,22 @@
-/*
-
-  Copyright (c) 2003-2006
-  Bundesamt fuer Sicherheit in der Informationstechnik (BSI)
-
-  This file is part of Dicop-Workerframe. For licencing information see the
-  file LICENCE in the distribution, or http://www.bsi.bund.de/
-
+/*!
+ * @file
+ * @ingroup workerframe
+ * @brief Password sorting code - used by the string extractor.
+ * 
+ * @copydoc copyrighttext
 */
 
-//#define DEBUG 		1
-//#define DEBUG_SORT		1
-//#define DEBUG_MERGE		1
-//#define DEBUG_COUNTER		1
+/*
+#define DEBUG_SORT		1
+#define DEBUG_MERGE		1
+#define DEBUG_COUNTER		1
+*/
 
-/* don't sort pair of 2 with merge_sort, use manual sort for speed */
+/** don't sort pair of 2 with merge_sort, use manual sort for speed */
 #define OPTIMIZED_MERGESORT 	1
 
-#include "../include/pwdsort.h"
-#include "../include/dicop.h"
+#include <pwdsort.h>
+#include <dicop.h>
 
 #ifdef DEBUG_COUNTER
 unsigned long swapped = 0;
@@ -103,9 +102,9 @@ void _swap (unsigned char* a, unsigned char* b, unsigned int len)
 void pwdgen_img_merge_sort (
   unsigned char* pwd_list,
   unsigned char* temp,
-  unsigned long first,
-  unsigned long last,
-  unsigned long len		/* len including zero termination or padding! */
+  const unsigned long first,
+  const unsigned long last,
+  const unsigned long len		/* len including zero termination or padding! */
   )
   {
   unsigned long median;			/* half */
@@ -232,9 +231,9 @@ void pwdgen_img_merge_sort (
 void pwdgen_img_shell_sort (
   unsigned char* pwd_list,
   unsigned char* temp,
-  unsigned long first,
-  unsigned long last,
-  unsigned long len		/* len including zero termination or padding! */
+  const unsigned long first,
+  const unsigned long last,
+  const unsigned long len		/* len including zero termination or padding! */
   )
   {
   unsigned long* index;			/* ptr to index array */
@@ -242,7 +241,6 @@ void pwdgen_img_shell_sort (
   unsigned long h;			/* distance(s) */
   unsigned long i,j;			/* temp vars */
   unsigned char* v;			/* compare element */
-//  unsigned char* temp;			/* temp array for re-arange */
 
 #ifdef DEBUG_SORT
   printf ("Sorting from %i to %i\n",first,last);
@@ -305,16 +303,6 @@ void pwdgen_img_shell_sort (
 	5	3		D		F
   */
 
-  /* use a scratch aray */
-//  temp = malloc ( len * cnt);
-//  if (NULL == temp)
-//    {
-//    printf ("Warning: Could not allocate %i bytes for sort.\n", 
-//     cnt * len);
-//    /* fail gracefully */
-//    return;
-//    }
-
   /* sort them into temp in the right order as dictated by index[] */
   for (i = 0; i < cnt; i++)
     {
@@ -324,7 +312,7 @@ void pwdgen_img_shell_sort (
   _copy ( pwd_list, temp, cnt * len);
 
   /* free scratch memory */
-  free(index); // free(temp);
+  free(index);
 
   /* all done */
   return;
@@ -338,9 +326,9 @@ void pwdgen_idx_merge_sort (
   unsigned char* pwd_list,
   unsigned int* idx,
   unsigned int* temp,
-  unsigned long first,
-  unsigned long last,
-  unsigned long len	/* len of strings including zero termination and/or padding! */
+  const unsigned long first,
+  const unsigned long last,
+  const unsigned long len	/* len of strings including zero termination and/or padding! */
   )
   {
   unsigned long median;			/* half */
@@ -465,8 +453,8 @@ void pwdgen_idx_merge_sort (
 
 unsigned long pwdgen_img_remove_doubles_in_place (
   unsigned char* pwd_list,
-  unsigned long count,
-  unsigned long len		/* len including zero termination or padding! */
+  const unsigned long count,
+  const unsigned long len		/* len including zero termination or padding! */
   )
   {
   unsigned long x, y;			/* index1, index2 */
@@ -500,9 +488,9 @@ unsigned long pwdgen_img_remove_doubles_in_place (
 
 void pwdgen_img_merge (
   unsigned char* pwd_list,
-  unsigned long fh,
-  unsigned long sh,
-  unsigned long len		/* len including zero termination or padding! */
+  const unsigned long fh,
+  const unsigned long sh,
+  const unsigned long len		/* len including zero termination or padding! */
   )
   {
   unsigned long median, first, last;			/* half */
@@ -637,5 +625,4 @@ void pwdgen_img_merge (
   free (temp);
   return;					/* merged now */ 
   }
-
 

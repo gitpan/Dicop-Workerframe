@@ -14,7 +14,7 @@ BEGIN
 
 my $prefix = '5072656669783132';
 
-chdir 'test-worker/linux/';
+chdir 'test-worker/';
 my (@args);
 while (<DATA>)
   {

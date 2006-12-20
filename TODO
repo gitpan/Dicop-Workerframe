@@ -7,22 +7,10 @@
 
 =item *
 
-Fix signed/unsigned comparisation issues as gcc warns
-
-=item *
-
 Support for UniCode and multi-byte characters in general password generator.
 
 This needs a full-blown Unicode support, for converting from ASCII to utf8,
 utf16, and vice versa. Along with checking/validating etc. Ugh.
-
-=item *
-
-Proper Makefile generation etc.
-
-=item *
-
-Use "const" in C-Sources.
 
 =item *
 

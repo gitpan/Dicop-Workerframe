@@ -1,38 +1,33 @@
-
-/*
-
-  Copyright (c) 2006,
-  Bundesamt fuer Sicherheit in der Informationstechnik (BSI)
-
-  This file is part of Dicop-Workerframe. For licencing information see the
-  file LICENCE in the distribution, or http://www.bsi.bund.de/
-
+/*!
+ * @file
+ * @ingroup workerframe
+ * @brief Header file for the parallell interface for Dicop
+ * 
+ * @copydoc copyrighttext
 */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
+#ifndef DICOP_PWDPAR_H
+#define DICOP_PWDPAR_H
 
-#include "../include/pwdgen.h"
-
-#ifndef PWD_PAR_INCLUDE
-#define PWD_PAR_INCLUDE
+#include <pwdgen.h>
 
 #define PWD_NO_PADD	0
+/** to be used as in "PWD_PADD_TO 9" resulting in "- 9" */
 #define PWD_PADD_TO     -
 
-/* ************************************************************************* */
-/* prototypes */
-
-/* public: */
-
-/* setup gathering */
+/* setup gathering of passwords */
 int pwdgen_par_init (
-	unsigned int count,
-	signed int padd,
-	unsigned char paddchar,
+	const unsigned int count,
+	const signed int padd,
+	const char paddchar,
 	struct ssPWD* pwd
   );
+
+/* return password length (derived from padding and current length) */
+unsigned int pwdgen_par_len (const struct ssPWD* pwd );
+
+int	pwdgen_par_push		(struct ssPWD* pwd);
+void	pwdgen_par_done		(struct ssPWD* pwd);
+int	pwdgen_par_process	(struct ssPWD* pwd);
 
 #endif

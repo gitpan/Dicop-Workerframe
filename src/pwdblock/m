@@ -1,4 +1,0 @@
-
-gcc -O4 -Wall ../main/*g.o pwdblock.c -o pwdblock
-
-strip pwdblock

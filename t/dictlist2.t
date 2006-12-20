@@ -30,11 +30,11 @@ BEGIN
   plan tests => 866 * 2;
   }
 
-my $updir = File::Spec->updir(); $updir = File::Spec->catdir($updir,$updir);
+my $updir = File::Spec->updir();	# '..'
 
 unlink 'out';
 
-chdir 'test-worker/linux/';
+chdir 'test-worker/';
 my (@args, $rc);
 while (<DATA>)
   {

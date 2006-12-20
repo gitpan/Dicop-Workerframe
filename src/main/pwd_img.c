@@ -1,22 +1,16 @@
-/*
-
-  Password/String extraction from images
-
-  Copyright (c) 2003-2006,
-  Bundesamt fuer Sicherheit in der Informationstechnik (BSI)
-
-  This file is part of Dicop-Workerframe. For licencing information see the
-  file LICENCE in the distribution, or http://www.bsi.bund.de/
-
+/*!
+ * @file
+ * @ingroup workerframe
+ * @brief Password/string extraction from images.
+ * 
+ * @copydoc copyrighttext
 */
 
-//#define DEBUG			1
-//#define DEBUG_SORT 		1
+/*
+#define DEBUG_SORT 		1
+*/
 
-#include "../include/pwd_img.h"
-#include "../include/pwdsort.h"
-#include "../include/pwddict.h"
-#include "../include/dicop.h"
+#include <pwd_img.h>
 
 /* ************************************************************************* 
 
@@ -62,13 +56,17 @@
 #endif
 
 unsigned long pwdgen_img_read ( 
-  struct ssPWD* pwd, unsigned int len, unsigned char* filename,
-  unsigned int* valid, unsigned long options, unsigned long image_type )
+  struct ssPWD* pwd,
+  const unsigned int len,
+  const char* filename,
+  unsigned int* valid,
+  const unsigned long options,
+  const unsigned long image_type )
   {
   
   FILE *file;
 
-  /* we use a slightly larger buffer, and place the read data into it's end.
+  /* We use a slightly larger buffer, and place the read data into its end.
      The space in front of the actual data will be zeros for the first loop,
      which will be ignored be the extraction routine, and for subsequent
      loops it will be filled with the last bytes from the previous buffer.
@@ -86,15 +84,15 @@ unsigned long pwdgen_img_read (
   unsigned long extracted;			/* count extracted from buffer */
   unsigned long ofs;				/* offset into read buffer */
   long len_adjust;				/* len-ofs */
-  long read;					/* bytes read from file */
+  long read;					/* bytes read from file per call to read() */
   unsigned long rc;				/* return code from img_check */
-  unsigned long size, read_bytes;		/* file size, file already read */
+  unsigned long size, read_bytes;		/* file size, file already read in total */
   double percent_done;
   unsigned int buffer_size;
 
-  unsigned max_pwds;				/* how many to extract at max before
+  unsigned int max_pwds;			/* how many to extract at max before
 						   handing them to check */
-  unsigned max_merge;				/* how many to extract before merging
+  unsigned int max_merge;			/* how many to extract before merging
 						   them with the rest */
   unsigned long appended;			/* for merging in extracted strings */
 
@@ -180,7 +178,7 @@ unsigned long pwdgen_img_read (
   /* if we extract X passwords at a time, but can only store Y, it will crash */ 
   if (max_merge > max_pwds)
     {
-    max_pwds = max_merge * 1.1;
+    max_pwds = (unsigned int) (max_merge * 1.1);
     } 
 
   printf ("\n Will extract %i strings at a time, until I have %i strings.", max_merge, max_pwds);
@@ -192,7 +190,7 @@ unsigned long pwdgen_img_read (
     }
   
   printf ("\n Opening image file '%s' ('%s') ...\n", filename, "rb");
-  if (NULL == (file = pwdgen_find_file( filename, "rb")))
+  if (NULL == (file = pwdgen_find_file(filename,"rb")))
     {
     return PWD_ERROR;
     }
@@ -427,13 +425,13 @@ unsigned long pwdgen_img_read (
 */
   
 unsigned long pwdgen_img_extract (
-      unsigned char* buffer, 
+      const unsigned char* buffer, 
       unsigned char* pwd_list,
-      long bufsize,
-      unsigned long len,
+      const unsigned long bufsize,
+      const unsigned long len,
       unsigned int *valid,
-      unsigned long options,
-      unsigned long skip,
+      const unsigned long options,
+      const unsigned long skip,
       struct ssPWD* pwd)
   {
   unsigned long extracted, i, j, n, stop;
@@ -547,10 +545,9 @@ unsigned long pwdgen_img_extract (
 	/* If we are told to mutate the extracted passwords, do so now and
 	   include them in the list right-away. This will allow the
 	   sorting/remove doubles stages later on to remove double-mutations
-	   like '0000' beeing the same in forward/reverse/lower/upper case. */
-        //pwd_list[j++] = buffer[n];
+	   like '0000' beeing the same in forward/reverse/lower/upper case.
     
-        /* lowercase/uppercase etc mutations through the dict generator and feed
+           lowercase/uppercase etc mutations through the dict generator and feed
            result to dofunction(), too
 	   XXX TODO: manually generate mutations via sub routine (faster?)
 	 */
@@ -597,9 +594,9 @@ unsigned long pwdgen_img_extract (
   }
 
 unsigned long pwdgen_img_sort (
-      unsigned char* pwd_list,
-      unsigned long pwds,
-      unsigned long len
+      const unsigned char* pwd_list,
+      const unsigned long pwds,
+      const unsigned long len
       )
   {
   unsigned char* temp;			/* temp for sorting */
@@ -629,16 +626,17 @@ unsigned long pwdgen_img_sort (
   return pwds;
   }
 
-extern int   dofunction   (void);
-
 /* ************************************************************************ */
 /* take list of (probably sorted) extracted passwords, and check them all by
    feeding them to dofunction() 
    return code PWD_FAIL or PWD_SUCCESS
   */
 
-unsigned int pwdgen_img_check 
- ( struct ssPWD* pwd, unsigned char* pwd_list, unsigned long pwds, unsigned long len )
+unsigned int pwdgen_img_check (
+	struct ssPWD* pwd, 
+	const unsigned char* pwd_list,
+	const unsigned long pwds,
+	const unsigned long len )
   {
   unsigned long j, checked;
 
@@ -664,7 +662,7 @@ unsigned int pwdgen_img_check
     printf ("Checking: '%s'\n", pwd->pwd);
 #endif
     /* check the password and if the check was successful, return */
-    if (0 != dofunction())
+    if (0 != dofunction( pwd ))
       {
       pwdgen_add( pwd, checked);
       return PWD_SUCCESS;
@@ -687,14 +685,14 @@ int pwdgen_extract (struct ssPWD* pwd)
   unsigned int options, image_type;
   struct ssCharset* extractset;	/* ptr to charset to extraction */
 
-  image_file = pwdcfg_find_key(pwd->config, "image_file", CFG_FAIL);
-  startlen = pwdcfg_as_int( pwd->config, "start", CFG_FAIL );
-  endlen = pwdcfg_as_int( pwd->config, "end", CFG_FAIL );
+  image_file = pwdcfg_find_key(pwd->config,"image_file", CFG_FAIL);
+  startlen = pwdcfg_as_int( pwd->config,"start", CFG_FAIL );
+  endlen = pwdcfg_as_int( pwd->config,"end", CFG_FAIL );
  
   /* if these keys exist, use them, otherwise default to 0 */ 
-  options = (pwdcfg_as_int(pwd->config, "extract_skip_invalids", CFG_NOFAIL) & 0x1);
+  options = (pwdcfg_as_int(pwd->config,"extract_skip_invalids", CFG_NOFAIL) & 0x1);
 
-  i = (pwdcfg_as_int(pwd->config, "debug_trace", CFG_NOFAIL) & 0x3);
+  i = (pwdcfg_as_int(pwd->config,"debug_trace", CFG_NOFAIL) & 0x3);
   if (i >= 1)
     {
     options += EXTRACT_DEBUG;
@@ -704,19 +702,19 @@ int pwdgen_extract (struct ssPWD* pwd)
       }
     }
 
-  options += ((pwdcfg_as_int(pwd->config, "extract_even_odd", CFG_NOFAIL) & 0x1) << 1);
-  image_type = pwdcfg_as_int(pwd->config, "image_type", CFG_NOFAIL);
+  options += ((pwdcfg_as_int(pwd->config,"extract_even_odd", CFG_NOFAIL) & 0x1) << 1);
+  image_type = pwdcfg_as_int(pwd->config,"image_type", CFG_NOFAIL);
 
   printf ("Extraction options: 0x%02x  Image Type: %i\n", options, image_type);
 
   extractset = 
-    pwdgen_find_set (pwd->charsets, pwdcfg_as_int( pwd->config, "extractset_id", CFG_FAIL));
+    pwdgen_find_set (pwd->charsets, pwdcfg_as_int( pwd->config,"extractset_id", CFG_FAIL));
 
   /* does charset exist? */
   if (NULL == extractset)
     {
     printf ("Extraction charset id %i does not exist - aborting.\n",
-      pwdcfg_as_int( pwd->config, "extractset_id", CFG_NOFAIL) );
+      pwdcfg_as_int( pwd->config,"extractset_id", CFG_NOFAIL) );
     return PWD_ERROR;
     }
   /* And is it a SIMPLE one? */
@@ -752,8 +750,7 @@ int pwdgen_extract (struct ssPWD* pwd)
     fflush(NULL);
 
     /* Extract strings from image and check them. */
-    rc = pwdgen_img_read( 
-	pwd, len, image_file->value, valid, options, image_type);
+    rc = pwdgen_img_read(pwd, len, image_file->value, valid, options, image_type);
 
     /* return a PWD_SUCCESS or PWD_ERROR early */
     if (rc != PWD_FAIL)

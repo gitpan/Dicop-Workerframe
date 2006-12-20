@@ -1,7 +1,7 @@
 
 # test that the password generator generates the right sequences of passwords
 
-chdir 'test-worker/linux/';
+chdir 'test-worker/';
 my (@args);
 while (<DATA>)
   {

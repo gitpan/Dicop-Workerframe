@@ -1,39 +1,50 @@
-/*
-
-  Copyright (c) 1998-2006,
-  Bundesamt fuer Sicherheit in der Informationstechnik (BSI)
-
-  This file is part of Dicop-Workerframe. For licencing information see the
-  file LICENCE in the distribution, or http://www.bsi.bund.de/
-
- test_par.c - Show password testing in blocks
- 
- return codes in dofunction: 	PWD_SUCCESS - found password
-				PWD_FAIL    - not found
-				PWD_ERROR   - fatal error
-              
+/**
+ * @defgroup workerframetestpar Test Par
+ * @ingroup workerframe 
+ *
+ * Dicop test worker for parallel interface.
+ *
+ * This test worker setsup the password generator to generate passwords
+ * in batches, and then tests them all in dofunction() in one go.
+ *
+ * The advantage of doing this is that the generated batch of passwords
+ * has all passwords with the same length (and the same optional padding),
+ * so the test can be done more quickly in some cases. The passwords could
+ * even handed to some external hardware or machine for testing.
+ *
+ * @copydoc copyrighttext
 */
 
-#include "../include/pwd_par.h"
-#include "../include/dicop.h"
+/**
+ * @file
+ * @ingroup workerframetestpar
+ * @brief A \ref workerframetestpar "test worker" for the parallel interface.
+ * 
+ * Return codes in dofunction: 
+ * -  PWD_SUCCESS - found password
+ * -  PWD_FAIL    - not found
+ * -  PWD_ERROR   - fatal error
+ *
+ * @todo The left-over passwords should be handled in endfunction().
+ *
+ * @copydoc copyrighttext
+*/
+
+#include <dicop.h>
 
 /* make these globals so we can use them in dofunction, too */
-struct ssPWD *pwd;
-unsigned char target[PWD_LEN];
-int targetlen;
-
-#define DEBUG 1
+char target[PWD_LEN];
+unsigned long targetlen;
 
 void printinfo(void)
   {
   /* print here your version and copyright */
   printf ("DiCoP test parallel worker v0.02  (c) Copyright by BSI 1998-2006\n\n");
+  PRINT_INFO;
   }
 
-int initfunction(struct ssPWD *password, char *targetkey)
+int initfunction(const struct ssPWD *pwd)
   {
-  pwd = password;		/* store struct with password */
-
   /* You can get access to the config file via:
   struct ssConfig* config = pwd->config;
   pwdcfg_find_key( config, "keyname", CFG_NOFAIL);
@@ -41,13 +52,19 @@ int initfunction(struct ssPWD *password, char *targetkey)
   
   /* As an example, we just copy the target key. It is also possible
      to access it via pwd->target and pwd->targetlen */
-  strcpy(target,targetkey);	/* store target password in ascii */
+  strcpy(target,pwd->target);	/* store target password in ascii */
   h2a(target);			/* or whatever suits you */
 
-  targetlen = strlen(targetkey) / 2;
+  targetlen = pwd->targetlen >> 1;
 
+  /* padd with 0x20 and the zero teminate */
+  target[targetlen++] = 0x20;
+  target[targetlen+1] = 0x0;
+
+#ifdef DEBUG
   /* print out a hexdump of our target data */
-  hexdump ("\n  Target:", "", targetkey, strlen(targetkey)+1, "  ");
+  hexdump ("\n  Target:", target, targetlen);
+#endif
 
   /* initialize the parallel interface:
    
@@ -62,7 +79,7 @@ int initfunction(struct ssPWD *password, char *targetkey)
   if ( pwdgen_par_init (
 	8192,			/* we want at max 8192 passwords */
 	1,			/* padded w/ 1 byte */
-	0x00,			/* padded with zeros */
+	0x20,			/* padded with space */
 	pwd			/* hand over the pwd struct */
 	) != PWD_INIT_OK)
     {
@@ -80,14 +97,14 @@ void stopfunction( void )
 
 /* called once after all pwds done, to give works doing pwds in batches a
    chance to complete left-over pwds */
-int endfunction(void)
+int endfunction(const struct ssPWD *pwd)
   {
+  /* XXX TODO we should test leftover passwords here */
   return PWD_FAIL;
   }
 
-int dofunction( void )
+int dofunction( const struct ssPWD *pwd )
   {
-
   /* we need first to test whether we actually got passwords via the parallel
      method: */
 
@@ -101,34 +118,42 @@ int dofunction( void )
 
   /* get the number of pwds we got */
   unsigned long cnt = pwd->par_cnt;
-  unsigned char *p = pwd->par_buff;
+  char *p = pwd->par_buff;
   unsigned long len = pwd->par_len;
 
 #ifdef DEBUG
   printf (" DEBUG: cnt: %li, len: %li, buffer at: %p\n", cnt, len, p);
 #endif
 
+  printf ("\n");
   /* do something with each password */
   while (cnt-- > 0)
     {
-
     /* for testsuite, output what we are doing */
 
-    unsigned char b[1024];
+    char b[1024];
     unsigned int i;
 
-    /* make copy of org password (minus the padded zero at the end) */
-    for (i = 0; i < len - 1; i++)
+    if (pwd->timeout == 0)                                /* for testsuite */
+      {
+      /* make copy of org password (minus the padding) for printing */
+      for (i = 0; i < len - 1; i++)
+        {
+        b[i] = p[i];
+        }
+      b[i] = 0;                                             /* zero terminate */
+      a2h(b,len-1);
+
+      printf ("At '%s' len %li\n", b, len);
+      }
+
+    /* make copy of org password for comparisation */
+    for (i = 0; i < len; i++)
       {
       b[i] = p[i];
       }
     b[i] = 0;                                             /* zero terminate */
-    a2h(b,len-1);
-
-    if (pwd->timeout == 0)                                /* for testsuite */
-      {
-      printf ("\nAt '%s' len %li", b, len-1);
-      }
+    a2h(b,len);
 
     /* update the crc with data that depends on the password, since we do not
        use the password to decrypt any actual data or something along these
@@ -137,16 +162,20 @@ int dofunction( void )
     pwdgen_update_crc(pwd, p, len);
 
     /* now check the current pwd against the target*/
-    if (targetlen == len-1 && memcmp(p, target, len-1) == 0) 
+    if (targetlen == len && memcmp(p, target, len) == 0) 
       {
 #ifdef DEBUG
-      printf ("  DEBUG: Found target.\n");
+      printf ("  DEBUG: Found target.\n" );
 #endif
 
-      /* Mark the current tested password as the last one.
-         This is important for the testsuite.
-      */
-      memcpy (pwd->pwd, p, len-1);
+      /* Mark the current tested password as one that matched.
+         Technically, we should include the padding here. But since the testsuite
+         checks for the password without the padding, we just set the first
+         len (= pwd->par_len - 1) bytes */
+
+      pwdgen_found(pwd, p, len - 1);
+
+      printf ("\n");
 
       return PWD_SUCCESS;
       }
@@ -157,5 +186,3 @@ int dofunction( void )
 
   return PWD_FAIL;					/* not found yet */
   }
-
-

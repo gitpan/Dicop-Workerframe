@@ -30,7 +30,8 @@ this password. In most cases, this is not a problem, however.
 =item *
 
 Likewise, the framework does not allow the code to transport any info back
-to the client (and hence to the server) except the passwort itself.
+to the client (and hence to the server) except the passwort itself
+and potential error messages.
 
 =back
 

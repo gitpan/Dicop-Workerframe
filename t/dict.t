@@ -25,7 +25,7 @@ BEGIN
   plan tests => 77;
   }
 
-chdir 'test-worker/linux/';
+chdir 'test-worker/';
 my (@args);
 while (<DATA>)
   {
@@ -54,8 +54,8 @@ while (<DATA>)
     }
   }
 
-# test timeout
-my $rc = `./pwdtest 61726d73 776f726c64 0000 target/42h.set 2`;
+# test timeout (1 second)
+my $rc = `./pwdtest 61726d73 776f726c64 0000 target/42h.set 1`;
 #print "$rc\n"; sleep(5);
 $rc =~ /Stopcode is '(.*)'/;
 print "$rc\n" unless

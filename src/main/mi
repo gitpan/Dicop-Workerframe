@@ -1,5 +1,0 @@
-icc -O3 -tpp6 -ipo -ipo_c -I/opt/intel/compiler50/ia32/include/ -c pwdgen.c -o pwdgeni.o
-icc -O3 -tpp6 -ipo -ipo_c -I/opt/intel/compiler50/ia32/include/ -c pwdread.c -o pwdreadi.o
-icc -O3 -tpp6 -ipo -ipo_c -I/opt/intel/compiler50/ia32/include/ -c pwddict.c -o pwddict.o
-icc -O3 -tpp6 -ipo -I/opt/intel/compiler50/ia32/include/ -c dicop.c -o dicopi.o
-icc -O3 -tpp6 -ipo -ipo_c -I/opt/intel/compiler50/ia32/include/ -c main.c -o maini.o

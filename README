@@ -35,10 +35,6 @@ the signature cannot be verified ok. B<Your system might get compromised!>
 
 These files are in the Dicop-Workerframe package:
 
-	t/		testsuite
-	t/target/	test data for the testsuite
-	t/output/	expected output for the testsuite
-
 	doc/		additional documentation
 
 	src/		source for the framework
@@ -48,7 +44,12 @@ These files are in the Dicop-Workerframe package:
 	src/test/	an example (test) worker
 	src/pwdtest/	(single pwd at a time) testworker for the testsuite
 	src/extract/	example test worker for extraction from image files
-	src/pwdblock/	(pwds in batches) testworker for the testsuite
+	src/test_par/	(pwds in batches) testing the parallel interface
+
+	build/		files related to package management
+	t/		testsuite
+	t/target/	test data for the testsuite
+	t/output/	expected output for the testsuite
 
 =head2 Short Overview
 
@@ -108,9 +109,9 @@ the server/client. It is just there to build new workers for the cluster.
 
 Just untar/ungzip the package to a directory of your choice:
 
-	tar -xzf Dicop-Workerframe-2.14.tar.gz
+	tar -xzf Dicop-Workerframe-2.17.tar.gz
 
-Replace "2.14" by the actual version you got.
+Replace "2.17" by the actual version you got.
 
         perl Makefile.PL
         make test
@@ -147,35 +148,31 @@ the distribution: C<test> and C<pwdtest>. Anything that is in these two
 directories (C<src/test> and C<src/pwdtest>) is needed to build a new worker
 - nothing more or less ;) See also L<DESCRIPTION|DESCRIPTION>.
 
-=head2 Supported platforms
+=head1 Supported platforms
 
-We only did extended testing under Linux running on x86 machines.
+The latest version of this framework was tested the following platforms:
 
-Some additional build-tests were done on a Compaq iPAQ H3870:
+=head2 Linux with GCC
 
-	bash-2.03# gcc -v
-	Reading specs from /usr/lib/gcc-lib/arm-linux/2.95.2/specs
-	gcc version 2.95.2 20000220 (Debian GNU/Linux)
-	bash-2.03# cat /proc/version
-	Linux version 2.4.18-rmk3 (andyc@rockhopper.crl.dec.com)
-	(gcc version 2.95.2 19991024 (release)) #13 Wed May 1 19:38:27 EDT 2002
+We tested with GCC 3.3.5 and GCC 4.1.0.
 
-	bash-2.03# cat /proc/cpuinfo
-	Processor       : Intel StrongARM-1110 rev 9 (v4l)
-	BogoMIPS        : 137.21
-	Features        : swp half 26bit fastmult
-	
-	Hardware        : Compaq iPAQ H3800
-	Revision        : 0000
-	Serial          : 0000000000000000
-	bash-2.03# perl -v
+=head2 Windows with MS Visual C++
 
-	This is perl, version 5.005_03 built for armv4l-linux
+The project should compile cleanly under a modern Windows using Microsoft
+Visual C++ 2003. You need 64 bit support for file pointers, e.g.
+C<fseeki64> and C<ftelloi64> must exist.
 
-	Copyright 1987-1999, Larry Wall
+When compiling under Microsoft Visual C++ 8, you need to specify
 
-However, we can not guaranty that it will work on all platforms. If you
-experience any problems, please contact us (see below).
+        /NODEFAULTLIB:libc
+
+in the linker flags, or it will complain. *sigh*
+
+=head2 Others
+
+It should work on other platforms, too. However, we can not guaranty that
+it will work on all platforms. If you experience any problems, please contact
+us (see below).
 
 =head1 AUTHOR
 

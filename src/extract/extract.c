@@ -1,59 +1,55 @@
-/*
-
-  Copyright (c) 1998-2006,
-  Bundesamt fuer Sicherheit in der Informationstechnik (BSI)
-
-  This file is part of Dicop-Workerframe. For licencing information see the
-  file LICENCE in the distribution, or http://www.bsi.bund.de/
-
- This program does not check passwords at all, instead it writes them to a
- file. It should be used as:
-
- ./extract chunk_description.txt
-
- return codes in dofunction: 	PWD_SUCCESS - found password
-				PWD_FAIL    - not found
-				PWD_ERROR   - fatal error
-              
+/**
+ * @defgroup workerframeextract Extract test worker
+ * @ingroup workerframe 
+ *
+ * @brief Dicop extract test worker - tests extraction of strings/passwords from files.
+ *
+ * This program does not check passwords at all, instead it writes them to a
+ * file. It should be used as:
+ * 
+ * @verbatim ./extract chunk_description.txt @endverbatim
+ *
+ * @copydoc copyrighttext
 */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include "../include/pwdgen.h"
-#include "../include/dicop.h"
+/**
+ * @file
+ * @ingroup workerframeextract
+ * @brief Dicop \ref workerframeextract "extract test worker" - tests extraction of strings/passwords.
+ *
+ * Return codes in dofunction: 
+ * -  PWD_SUCCESS - found password
+ * -  PWD_FAIL    - not found
+ * -  PWD_ERROR   - fatal error
+ *
+ * @copydoc copyrighttext
+*/
 
-//#define DEBUG 1
+#include <dicop.h>
 
 /* make these globals so we can use them in dofunction, too */
-struct ssPWD *pwd;
 FILE* output;
 unsigned long as_hex;
 struct ssKey* key;
 
+/** Prints version and copyright. */
 void printinfo(void)
   {
-  /* print here your version and copyright */
   printf ("DiCoP extract worker v0.03  (c) Copyright by BSI 1998-2006\n\n");
   }
 
-int initfunction(struct ssPWD *password, char *targetkey)
+int initfunction(const struct ssPWD *pwd)
   {
-  pwd = password;		/* store struct with password */
 
   /* get access to the config */
   key = pwdcfg_find_key ( pwd->config, "extract_to", CFG_FAIL);
 
   printf ("\n Opening output file '%s'.\n", key->value);
-  output = fopen (key->value, "w");
-  if (NULL == output)
-    {
-    printf ("Cannot open '%s' for writing. Check permissions.\n", key->value);
-    return 1;
-    }
+  pwdgen_file_open(key->value, "w", output);
 
   /* 0 or != 0 */
   as_hex = pwdcfg_as_int ( pwd->config, "extract_as_hex", CFG_NOFAIL);
-  return 0;			/* init was okay */
+  return PWD_INIT_OK;		/* init was okay */
   }
 
 void stopfunction( void )
@@ -65,20 +61,20 @@ void stopfunction( void )
 
 /* called once after all pwds done, to give works doing pwds in batches a
    chance to complete left-over pwds */
-int endfunction(void)
+int endfunction( const struct ssPWD *pwd )
   {
   return PWD_FAIL;
   }
 
-int dofunction( void )
+int dofunction( const struct ssPWD *pwd )
   {
   unsigned long i, len;
-  unsigned char b[PWD_LEN*2];
+  char b[PWD_LEN*2];
 
-  /* make copy */
-  /* if requested, convet the password to hex before writing it out */
+  /* if requested, convert the password to hex before writing it out */
   if (0 != as_hex)
     {
+    /* make copy */
     len = pwd->length;
     for (i = 0; i < len; i++)
       {
@@ -109,5 +105,4 @@ int dofunction( void )
     }
   return PWD_FAIL;					/* continue */
   }
-
 

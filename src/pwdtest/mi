@@ -1,3 +1,0 @@
-
-icc -O3 -tpp6 -ipo  -I/opt/intel/compiler50/ia32/include/ ../main/*i.o *.c -o pwdtesti
-rm *.il

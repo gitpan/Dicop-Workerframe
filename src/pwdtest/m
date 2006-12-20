@@ -1,4 +1,0 @@
-
-gcc -O4 -Wall ../main/*g.o pwdtest.c -o pwdtest
-
-strip pwdtest

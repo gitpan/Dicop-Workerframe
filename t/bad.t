@@ -11,7 +11,7 @@ BEGIN
   plan tests => 40;
   }
 
-chdir 'test-worker/linux/';
+chdir 'test-worker/';
 my (@args);
 while (<DATA>)
   {
@@ -49,7 +49,7 @@ Error: Illegal character 67 at pos 1 in end pwd.
 Error: End password shorter than start password.
 303030,30303030,0000,target/42bad.set,0
 Error: Invalid key 'password_prefix_faulty'
-303030,30303030,0000,../../target/42bad.set,0
+303030,30303030,0000,../target/42bad.set,0
 Error: Invalid key 'password_prefix_faulty'
 303030,30303030,0000,42bad.set,0
 Error: Cannot find file '42bad.set'

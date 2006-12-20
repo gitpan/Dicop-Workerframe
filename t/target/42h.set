@@ -1,8 +1,7 @@
 password_prefix=""
 dictionary_file="testdict2.txt"
-# 1 - lowercase
-# 2 - UPPERCASE
-dictionary_mutations=3
+# all:
+dictionary_mutations=1023
 #   1 forward
 #   2 reverse
 dictionary_stages=3

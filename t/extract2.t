@@ -15,7 +15,7 @@ BEGIN
 my $filesize = 1024 * 1024 * 0.002;		# 0.5 megabytes
 my $length = 2;					# AA..ZZ
 
-chdir 'test-worker/linux/';
+chdir 'test-worker/';
 print "# created sample image file\n";
 open FILE, '>test.img' or die ("Cannot write test.img: $!\n");
 my $doc = ''; my $a = 'aa';

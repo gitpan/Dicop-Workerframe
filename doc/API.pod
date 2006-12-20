@@ -411,5 +411,5 @@ Address: BSI
 	 Godesberger Alle 185-189
 	 53175 Bonn
 	 Germany
-email:	 dicop@bsi.bund.de	(for public key see dicop.asc or website)
+email:	 dicop @ bsi.bund.de	(for public key see dicop.asc or website)
 

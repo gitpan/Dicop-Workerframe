@@ -1,5 +1,5 @@
 This file contains message digests of all files listed in MANIFEST,
-signed via the Module::Signature module, version 0.53.
+signed via the Module::Signature module, version 0.55.
 
 To verify the content in this distribution, first make sure you have
 Module::Signature installed, then type:
@@ -14,68 +14,62 @@ not run its Makefile.PL or Build.PL.
 -----BEGIN PGP SIGNED MESSAGE-----
 Hash: SHA1
 
-SHA1 fd2b686d85752554d0aa667099b79eb9bc31e8eb BUGS
-SHA1 ea04387573cbc474ef0c393603d74eac1e881c0c CHANGES
+SHA1 dc1114ead28ac67db37b2d58a226131b9bfb2db0 BUGS
+SHA1 aaa381dbbfa1c426668b646a4d83e1641dd9ba97 CHANGES
 SHA1 28b3c1c97b3f0647310eb9736682a44933a460ba CHANGES-2.14
-SHA1 fe853ddd80c8a224bdebc0c98c46e05f65097652 LICENSE
-SHA1 845cc48c397a8aad3b55105b7073cac53d9686f2 MANIFEST
-SHA1 052d0c9b45673356536954169acf1c65a342cc93 META.yml
-SHA1 423540e35caac1759da8651bc05354fbd9ad7708 Makefile.PL
-SHA1 bcf941bbb0aea983ee0acfc17a62e3f1d0370fce README
-SHA1 c6f712432bbd596efb9af32042073027620bca6b TODO
+SHA1 f60fa9f961a2eab2db8fdcb73a80f00b705d99c3 LICENSE
+SHA1 927f9149c8f822f4896f21842d8d66f8d30c4271 MANIFEST
+SHA1 c1a56efff4f6c54003f282e766cb6bd81f13e943 MANIFEST.SKIP
+SHA1 6e421b473498c818352b4fb710df6f8c70ed60c1 META.yml
+SHA1 d58ccf58cce37e2ef5dcda680a32aa24abaadf63 Makefile.PL
+SHA1 b30dd73f35a0a63cbb88f206bc9a85e732e29edc README
+SHA1 3860cf7533a0c2b3c0156a8b636e02816b9e0254 TODO
+SHA1 7842ca9762de5137bc00ea433533b52cc146ccea build/Doxyfile
+SHA1 e7d7bfd8bdd5337d745a7ce138e6ac3e4cc4560d build/Doxyfile-de
+SHA1 ad59c922de43dbba179588c85a45a219a8f113f0 build/README
+SHA1 edd5940224958e188774d973b5987669c7f58efc build/gen_patch_h.pl
+SHA1 56c029bbe559964395467e8d0b0aa76337b62f2f build/patch.tpl
 SHA1 35e4359f8ec7659158e149eb7d71c11d61274d33 dicop.asc
-SHA1 3769a68210ccd5a4bd54f6855a1c2ad19da7edd4 doc/API.pod
-SHA1 ee08cade98f56d8dd5b74dd5ca2dd0452ae7ebf4 doc/Config.pod
+SHA1 979798d8eca32b1468ed481356081a5318bad988 doc/API.pod
+SHA1 9c4ca04d50d3d9d01e446ae93ff9547588edcada doc/Config.pod
 SHA1 5be4ccdbda18a53683288b01f287b9bf891fb68c doc/Dict.pod
 SHA1 aaa724d59d010f9f59a3b4371ec3b1939e2f36c4 doc/Extract.pod
 SHA1 6e26c1fe00fd8a785481a7e376a3659a9a24cbd3 doc/Parallel.pod
-SHA1 8c05fb81ac6f2357afd90d13bd85f179d3cac656 src/extract/extract.c
-SHA1 33d72f2b4f8cedc6b75049e8cf6efa4f91300dba src/extract/m
-SHA1 681f9ddc4b133c8114e55279f0c3029fd1805abe src/extract/mg
-SHA1 6ad215dfce4961573a94abd7d26f182ba2338c56 src/extract/mi
-SHA1 0ada8bac6856c5ade8c13cf78a6aada833b01c2b src/include/dicop.h
-SHA1 a9a3039b458bc41d593ee874c95ec3685e873ca6 src/include/hexdump.h
-SHA1 840012617e7f4cfe2037af56d735dd8042bedd56 src/include/pwd_img.h
-SHA1 a68437c2042fe5eead06060ac55787921fd233b5 src/include/pwd_par.h
-SHA1 ed8ecc0d058852db2b1a3a7e84a0c28b83a37ecf src/include/pwdcfg.h
-SHA1 70abb37a2c3e47f75fcd30a9257290c256c28cfc src/include/pwddict.h
-SHA1 24715740d17332d1e6832c21a913ef83d289a9f6 src/include/pwdgen.h
-SHA1 a1db1ee01baa374e6d9a1af487705698ee997f25 src/include/pwdread.h
-SHA1 37100e2356024b4fe8e6ecc5d2fae2701acbe50f src/include/pwdsort.h
-SHA1 4a17be04b88eec96a253e8967eeb8c160cfb8be2 src/main/dicop.c
-SHA1 f48d9cd3512708bf8abd0340fec6dfd6e02740d7 src/main/hexdump.c
-SHA1 7f825d9494289e31fdcb1154c4329163bcb37f91 src/main/m
-SHA1 a53fa775120b7bacfb98c19976bd00e2d2824150 src/main/main.c
-SHA1 d517017a51bcc5f05df1ff207500fa675eb8eeba src/main/mg
-SHA1 5f259269bc0113ae4e1ff4c43a6c2200090e5a00 src/main/mi
-SHA1 daf0c9488d1cd0802467bc7ef7c7cfd9faf8877a src/main/pwd_img.c
-SHA1 6d2cf48d8f3a63776a9bc967efe9267f305901e7 src/main/pwd_par.c
-SHA1 2cccddba3f3ebf3ce68666a86b1d06dbc862b0e7 src/main/pwdcfg.c
-SHA1 1dd96e2443b38a88d9c2fba93909ee451fe98fbc src/main/pwddict.c
-SHA1 de6a1218982f7e7c4fc783ad77f918f1aa1facda src/main/pwdgen.c
-SHA1 42f10795c86684c1b83d132a209c84b8cd1bfec6 src/main/pwdread.c
-SHA1 1360b9237e38e2d63f5b91f31ff3cabc28558363 src/main/pwdsort.c
-SHA1 a2c9e0592b82ca212421484708c7919b217b2044 src/mitest
-SHA1 9f46797972f574abf4b100d0ce7d8608f7e491bf src/mtest
-SHA1 5cdc3a5ae394e6ac1ea08ef7e8b90ba594e533c4 src/pwdblock/m
-SHA1 4d2fbcae5a8e5e1320c93a5988e64a6907d3aae4 src/pwdblock/mi
-SHA1 637e745980ef5d3968f0b2b8d22fd98a0c2d398f src/pwdblock/pwdblock.c
-SHA1 70bba344d88258c816acd4cb896ac5f4adc7c028 src/pwdtest/m
-SHA1 3468b5f64d08a53d2f396d8be589f7c8fc3ab0b4 src/pwdtest/mi
-SHA1 aca865a989d44cc52498545168949f8b9094a41a src/pwdtest/pwdtest.c
-SHA1 dfc8b3015d7bf753d8d33b33e372a3764bfcd5a7 src/test/m
-SHA1 4d2fc23035f144efdb23f1797a7f0019da145877 src/test/mi
-SHA1 788ba1fec91bcfa9f30003fef6852d2fae353c15 src/test/test.c
-SHA1 f19ef3b8402bf49b032b10d53cdf28512bafff3a src/test_par/m
-SHA1 6c6552ff4db7698c7a6708a2595338e75d900576 src/test_par/test_par.c
-SHA1 b2f337946f0a186772dc2277aec78841e980ce36 t/00_compile.t
-SHA1 ed46f92f075d3f8cd2626fccef0ea9f257bb3947 t/bad.t
-SHA1 64b989a63ea5eae3159da19ff5d713f9373851f3 t/block.t
-SHA1 f7c328e0485e9fdde6b9511e765dc525e9b33f5a t/dict.t
-SHA1 323b3f8e7bbc754d196b1b5c2d93bea570dc54e6 t/dictlist.t
-SHA1 e096fde0bac24581f99c99142a02b5b1f88fd281 t/dictlist2.t
-SHA1 b2df80298c850cfc699167e65ccf07b14cc8d249 t/extract.t
-SHA1 5aadfc164fd31040b25cb1cf6f07a053f042ec3f t/extract2.t
+SHA1 a4b467acd81d0eef6b0c57746eb0b2cf17bcfe7a lib/README
+SHA1 62d4c648861ce6b635f6522c997e0bf0751e38e4 src/extract/extract.c
+SHA1 48adb961eddf6c559858a7493c145a0857c3d010 src/include/dicop.h
+SHA1 bf537145f710d161196ded7226d747cb79e5c289 src/include/dicop_unused.h
+SHA1 fa84d44b7f3fa0219c9b54cf5438425766b1294b src/include/hexdump.h
+SHA1 1bb2bd57304ed92da511b8f0de5237634bc401ed src/include/patch.h
+SHA1 efb4303c7307f7944dfbd1c35e906f2b375c7fa1 src/include/pwd_img.h
+SHA1 a116c86932f2fedecc88aa0b3bf9c7df38f3ac23 src/include/pwd_par.h
+SHA1 b52e1c5aea38e860d4683793dcf112e161d274fe src/include/pwd_util.h
+SHA1 ff2260377db6b494add12edf96104c214221ee17 src/include/pwdcfg.h
+SHA1 050a197c7290c8777c762db4f9e768a0e9d690b1 src/include/pwddict.h
+SHA1 d68aa807fee1e539a43f53ae37a7798a6898713c src/include/pwdgen.h
+SHA1 0b482351399a00aa931574dcbfee8418d61fb7fc src/include/pwdread.h
+SHA1 99df41821782e3677784197dba8ce9e5bc5b8b16 src/include/pwdsort.h
+SHA1 df848e9b26a2d64667c364fe5e279c2a1108065d src/main/dicop.c
+SHA1 fcd7ba6819ad48ae76bd5d318617cbf3f70f1bd9 src/main/hexdump.c
+SHA1 f78630a9e6435fb6c53f3af510b0866eff7d12e2 src/main/main.c
+SHA1 f0effd9f4ffe4d6887903ea4ff05320c79aa458c src/main/pwd_img.c
+SHA1 3e27bccc2fc978468040c0f8804dec78d29b8c2d src/main/pwd_par.c
+SHA1 3817f31830a9414fa19fe744ce4672907a741757 src/main/pwd_util.c
+SHA1 0c6fd7818f6c100f892d6c2fdfab213dc2e7125e src/main/pwdcfg.c
+SHA1 d91ab9c0cb272a9ddf9d490141ad392dfcf7a939 src/main/pwddict.c
+SHA1 f99dbb065653d05c7c043f4f4fb456f4d862fee0 src/main/pwdgen.c
+SHA1 ec7256a5d01d166cb3c663d05403080eea1aa2dc src/main/pwdread.c
+SHA1 54fed41f78e0fb70a696f1a05b6bde7d7ceb27dd src/main/pwdsort.c
+SHA1 5c749983f8afbd263afb493e3e4588f10145fd94 src/pwdtest/pwdtest.c
+SHA1 381b257121856944a74283aecf7e3aea57aadb1a src/test/test.c
+SHA1 1473483dd8cf78dfa6d2645f22b2a3d28455ba50 src/test_par/test_par.c
+SHA1 e4e933cede91ce74a61a1e9981fee0551a58afc1 t/bad.t
+SHA1 93aade1095684f5b9cb78da7ea1a4cabe93ec7c7 t/charsets.def
+SHA1 94589589530814857d039529086124805ce0bc03 t/dict.t
+SHA1 50117e8a2acf32c4daec5846edfd3f1cdea1cd90 t/dictlist.t
+SHA1 a28887ebce6c2b13f816ce25b1a8504cc0c22d06 t/dictlist2.t
+SHA1 a545386d1b6a3b33fa140a05ca6aaee804d3bff2 t/extract.t
+SHA1 3145326beccf7afc11563d22f07a610a7835c99f t/extract2.t
 SHA1 50a83f123bf37c6f8c58b9fcc720d62a7f87c5e3 t/output/gen.pl
 SHA1 9b5c8f4a96a4a7a4519199be00da74506e314ab9 t/output/image/image000.lst
 SHA1 84635d94910905d9ac56b139f1a660bfe413a099 t/output/image/image001.lst
@@ -108,9 +102,9 @@ SHA1 6cd1d6ddf9634c67d11ddbb2832fd8eb321ed1d9 t/output/list7.txt
 SHA1 0218e1bc401e2cd7f5f1176f96ac21133d53a72e t/output/list8.txt
 SHA1 178a235c259f0a8060cf94af9d51ea87b747ba05 t/output/list9.txt
 SHA1 b415bb81f7237750f47c892847284979bf7bcb4b t/par.t
-SHA1 9f7fabf05932d2b533cb805492529c4389c0213e t/prefix.t
-SHA1 c2b0f8cfa5ebe953fd66083576d15b197cf89acc t/prefixg.t
-SHA1 6250d7aad1619e72fd3c98bcbbdcd6a7d3c0be6d t/stages.t
+SHA1 4d03979e094ca7a7f3c231c0fcc41b1f39fd4156 t/prefix.t
+SHA1 d6dc4e6e6d47fb886ef6674afc00d5480210d15e t/prefixg.t
+SHA1 045434216ec4e0488e375cd4f645dc918c37a7e2 t/stages.t
 SHA1 53c0efb38942b746fdb3d0e16705249542410e14 t/target/1023.set
 SHA1 bbcad3b2dcd221164a4a07168262864481652cd1 t/target/1023a.set
 SHA1 4ddcd4453366485537e9d074877b141d84c038b5 t/target/1023b.set
@@ -125,7 +119,7 @@ SHA1 33c3b1c7063dc5929fd97a1ea57314a5ee430d84 t/target/42d.set
 SHA1 c95833de3925b1619e0c2f9acdd169412bfecb4a t/target/42e.set
 SHA1 629ecd361c3ff6026565d770cfc5e12895932ab6 t/target/42f.set
 SHA1 3cc58498e37e79ed981e40d192f8a41f96b89832 t/target/42g.set
-SHA1 0b7ed5809d970c99714b060f6a1f7d9ce00d67e7 t/target/42h.set
+SHA1 2aab1f40dfe48170af946501c8a1d2a756b44e5b t/target/42h.set
 SHA1 a1f7962c7f6e676736ab06c764e3dd8b4176b8aa t/target/bad_0_0.txt
 SHA1 4b59a50a8a9fbfe9c0ed088b495c9714fb7eb720 t/target/bad_0_1.txt
 SHA1 5f8779b1c56478de31891dda42d444c596fcc0eb t/target/bad_0_2.txt
@@ -183,14 +177,13 @@ SHA1 0c309a35afd21b7a5bb7f1cfd6eb2cd4888e5b37 t/target/ps1023.set
 SHA1 c0af2b3a6042e0165729998f8d9e239373d2efa0 t/target/ps2.set
 SHA1 160edf1e5232af55e50253cb5857e5fbed5c391c t/target/ps3.set
 SHA1 cba745a4da86973ecaaeb72aa9462e460d6279e5 t/target/ps42.set
-SHA1 93aade1095684f5b9cb78da7ea1a4cabe93ec7c7 t/test-worker/charsets.def
-SHA1 da39a3ee5e6b4b0d3255bfef95601890afd80709 t/test-worker/linux/dummy.txt
-SHA1 d160164f0bc5cf8c0a74a555ec96914d2720723d t/worker.inc
+SHA1 2c8f29468e21f3fc5a21551576ba2db0d03ddd0b t/test-worker/README
+SHA1 efa975f9267b4fd67ce87b7865a2ea45ce8d88d8 t/worker.inc
 SHA1 265a72f10740534d45c8c0d720edd98dc7de260c t/worker.t
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.2 (GNU/Linux)
 
-iD8DBQFEV3F2YmqMGoA0pxgRAqtGAKCy5my6divui+yBz/eu5sKT/A0nzgCghBlo
-/Qe82ZSBCWhN09/3QRpua5A=
-=Cecw
+iD8DBQFFiRigYmqMGoA0pxgRAuh8AJ96SydFWfJAmnRD+o3mCaWJnOTuHwCeIkkl
+/YtePzNkAWs6lXvXwecxpy0=
+=3biL
 -----END PGP SIGNATURE-----

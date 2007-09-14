@@ -40,7 +40,7 @@ while (<DATA>)
   {
   next if /^#/;
   next if /^\s*$/;
-  chomp();
+  s/[\n\r]//g;		# remove newlines
   my @a = split /,/, $_;
   print "# $a[0]\n";
   $rc = `./pwdtest target/$a[0] 0`;
@@ -80,7 +80,7 @@ sub _read_file
   open $FILE, $file or die("Cannot read file '$file': $!");
   while (my $line = <$FILE>)
     {
-    chomp($line);
+    $line =~ s/[\n\r]//g;		# remove newlines
     push @pwds, a2h($line);
     }
   close $FILE;

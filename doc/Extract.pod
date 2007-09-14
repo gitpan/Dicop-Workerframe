@@ -22,12 +22,12 @@ The server needs to define a C<EXTRACT> type of charset. It should carry
 settings for what to extract (the type of characters) and in which way
 (skipping, terminating, see below).
 
-The charset should not contain the minimum and maximum lenght, nor the actual
+The charset should not contain the minimum and maximum length, nor the actual
 file from where to extract. These settings will be specified on a job-by-job
 basis, since they differ typically for each job.
 
 The job's C<start> and C<end> setting will be the C<min> and C<max> length,
-and the image file name must be specified additonally.
+and the image file name must be specified additionally.
 
 =head2 Worker and Workerframe
 
@@ -37,7 +37,7 @@ each of the extracted passwords in turn.
 The exact implementation is transparent, e.g. the usage of C<dofunction()>
 stays the same - for each extracted string C<dofunction()> is called and checks
 it. Where the string comes from is of no concern to the checking code.
-This keeps the generation and check seperated.
+This keeps the generation and check separated.
 
 =head2 Password extraction
 
@@ -64,7 +64,7 @@ end of the current image part), or contains invalid/unwanted characters.
 The first observation is that when extracting string of length N, we never
 need to extract strings that are shorter or longer than N.
 
-The longer ones wil be done later, so we need not to be concerned about them
+The longer ones will be done later, so we need not to be concerned about them
 now.
 
 The shorter passwords fall into two categories:
@@ -113,10 +113,10 @@ Both options have advantages. The terminator cuts down unwanted strings,
 while the skip also catches strings that are in (simple) Unicode, or
 broken down on line breaks, or other boundaries.
 
-Also, the characters considered invalid/valid are changable, so that
+Also, the characters considered invalid/valid are changeable, so that
 we can extract strings of certain qualities. We use a C<SIMPLE> charset
 to describe the list of characters that are I<valid>. Anything else is
-then dropped or used a terminator.
+then dropped or used as a terminator.
 
 =head2 Extracting at odd/even positions
 
@@ -153,11 +153,11 @@ recommended to do so to cut down the number of unwanted strings.
 
 It does not make sense to check the same passwords twice, so we must weed
 out doubles. A first, simple check can be made if the currently extracted
-password is the same than the one before. These can be skipped immidiately.
+password is the same than the one before. These can be skipped immediately.
 
 This improves performance if there are long stretches of the same pattern
-(if the pattern lenght is dividable by C<N>) or of the same character, since
-these will be dropped immidiately.
+(if the pattern length is dividable by C<N>) or of the same character, since
+these will be dropped immediately.
 
 After extracting all possible strings, minus some of the doubles, we will
 still have some doubles left. We weed these out effectively by sorting
@@ -168,7 +168,7 @@ each other (after the sorting), so before calling C<dofunction>, we could just
 check that we call it with a new, different password.
 
 Not all doubles will be skipped, however. The reason is that we can fit only
-so much strings into the memory and sort them (which is neccessary to skip
+so much strings into the memory and sort them (which is necessary to skip
 doubles). If our memory is exhausted, we clear the list and start over with
 an empty list and append newly extracted strings to it.
 
@@ -177,15 +177,15 @@ the list before.
 
 However, the occasional double checking is still much faster if we attempted
 to create one big, huge sorted list of all strings ever seen - especially
-if the filesize is very big. The reason for this is because keeping an entire
+if the file size is very big. The reason for this is because keeping an entire
 huge list of all unique strings ever seen is impossible to solve without
 unlimited memory and/or swapping them to disk. This is were previous and
 already existing solutions fail, so we only keep an finite amount of strings
 and accept that doubles occur.
 
-Methematically speaking, building a list of strings twice and checking them
+Mathematically speaking, building a list of strings twice and checking them
 takes twice as long, but merging these two lists and sorting them takes more
-than twice as long due to the properties of the sort algorithmn, which is
+than twice as long due to the properties of the sort algorithm, which is
 typically C<O(N * log N)>.
 
 This also effects string extraction while saving them to a file, see
@@ -210,7 +210,7 @@ strings appended (C<N> strings), so that C<N + Y > X>.
 Instead of sorting the entire list, and then weeding out the doubles, we just
 need to sort the last C<N> strings, and then merge the two sorted lists
 together to form one big sorted list of strings, from which we can then weed
-out the doublettes.
+out the doubles.
 
 =head2 Caching
 
@@ -221,7 +221,7 @@ clients.
 
 It is not clear whether it is worthwhile to cache some information, since
 there will be only a few parts of the entire image distributed to one
-client. To catch all doubles we would need to share a chache across all
+client. To catch all doubles we would need to share a cache across all
 clients. It is also unclear which strings to cache and which not, and it
 is certainly not possible to simple cache all of them due to memory
 and processing time restraints.
@@ -241,7 +241,7 @@ password and the C<overflow> need to be changed. For simplicity reasons,
 C<overflow> can be set to C<N>; indicating that the entire password
 changed. While this is not quite true due to walking a sorted list of
 passwords, it is just a minor optimization for C<dofunction>, which
-is not strictly neccessary, and not used that often.
+is not strictly necessary, and not used that often.
 
 From the C<dofunction>'s point of view, the extraction is invisible and
 transparent.
@@ -270,7 +270,7 @@ read buffer are appended to this list, which is sorted after it reaches it's
 limit. After sorting, we weed out doubles and check the fill-rate of this
 list against our limit. If this list is (nearly) full, we check each string via
 C<dofunction()> (see also Notes on mutating case and forward/reverse),
-otherwise we colect more strings.
+otherwise we collect more strings.
 
 =back
 
@@ -311,7 +311,7 @@ ranges.
 
 On a PIII 500 Mhz the empty check makes about 135000 pwds/s, about 30% more
 than previously. This depends greatly on the number of strings extracted
-and the amount of dublettes in them. The sorting could still be a bit faster
+and the amount of doubles in them. The sorting could still be a bit faster
 as to not waste more time to extract/sort than to check, especially if the
 check is (very) fast. For very slow checks, the sorting time does not matter. 
 
@@ -325,7 +325,7 @@ MiXeD case etc) just like with dictionaries.
 
 =item tests
 
-Some initial tests and benchmarks with artitifially created images of various
+Some initial tests and benchmarks with artificially created images of various
 sizes up to one megabyte have been tried. The formal tests with known results
 all pass, but we need more with more special extraction sets.
 
@@ -337,7 +337,7 @@ The workerframe contains a sample worker called C<extract>. With this worker it
 is possible and very easy to extract a dictionary out from a file, image or
 device.
 
-You just need to write a confgig file like this one:
+You just need to write a config file like this one:
 
 	# Config file for extract
 	charset_id=300
@@ -368,7 +368,7 @@ It does not make much sense to extract strings shorter than 6 characters.
 The charsets are defined in the file C<charsets.def>, found in the worker dir.
 
 When setting the option C<extract_skip_invalids> to 1, a lot more strings will
-be extracted, but these are not neccessarily usefull. A much more useful option
+be extracted, but these are not necessarily useful. A much more useful option
 is C<extract_even_odd>, and it is recommended to set it to 1. This will extract
 strings from every other byte at even and odd positions.
 
@@ -395,7 +395,7 @@ Enjoy!
 
 If you set the two config entries as follows:
 
-	dictionary_mutations=1023
+	dictionary_mutations=2047
 	dictionary_stages=3
 
 each extracted string will, in addition to as-it-is, be tried in two different
@@ -416,7 +416,7 @@ Index-sorting could be implemented and we need to check whether weeding out
 doubles inline is faster or not. Also, merge_sort with weeding out doubles
 as it goes along could bring speed. Or not, so check it.
 
-In addition, ultra-slow check algorithmns could benefit from a larger list,
+In addition, ultra-slow check algorithms could benefit from a larger list,
 because the potential more doubles could be identified and removed prior
 to feeding the strings to the checklist.
 
@@ -438,10 +438,20 @@ Check everything working together. Celebrate. Party. Rest.
 
 =head1 AUTHOR
 
-(c) Bundesamt fuer Sicherheit in der Informationstechnik 1998-2006
+(c) Bundesamt fuer Sicherheit in der Informationstechnik 1998-2007
 
 The DiCoP Workerframe falls under the BSD license.
 
 See the file LICENSE or L<http://www.bsi.de/> for more information.
+
+=head2 Contact
+
+Address: BSI
+	 Referat 123
+	 Godesberger Allee 185-189
+	 Bonn
+	 53175
+	 Germany
+email:	 dicop @ bsi.bund.de	(for public key see dicop.asc or web site)
 
 =cut

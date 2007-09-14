@@ -18,7 +18,7 @@ chdir 'test-worker/';
 my (@args);
 while (<DATA>)
   {
-  chomp();
+  s/[\n\r]//g;		# remove newlines
   next if /^#/;
   my @args = split /,/, $_;
   my @a = splice @args,0,7;
@@ -26,7 +26,7 @@ while (<DATA>)
   print "# Testing $a[0] $a[1] $a[2] $a[3] $a[4] prefix=$prefix\n";
   my $rc = `./pwdtest $a[0] $a[1] $a[2] $a[3] $a[4]`;
 
-  # print "$rc\n"; sleep(5);
+  #print "$rc\n"; sleep(5);
   $rc =~ s/\nAt '(.+)'/my $v = shift @args; if (!defined $v) { $v = 'no more output';} else { $v = $prefix . $v; } is($1,$v, "key $v"); '';/eg;
 
   $rc =~ /Last tested password in hex was '(.*)'/;

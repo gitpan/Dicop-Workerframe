@@ -7,10 +7,13 @@
 
 =item *
 
-Support for UniCode and multi-byte characters in general password generator.
+Support for Unicode and multi-byte characters in password generator:
 
-This needs a full-blown Unicode support, for converting from ASCII to utf8,
-utf16, and vice versa. Along with checking/validating etc. Ugh.
+  * add support for UTF-16 to the string extractor
+  * finish the extract parameter setup (extract_utf8, extract_utf16 etc)
+  * pwdgen_add_bom(pwd, string)
+  * add support for surrogate pairs in UTF-16
+  * finish the encoding conversions for multi-byte encodings
 
 =item *
 
@@ -19,7 +22,7 @@ GROUPED character sets.
 
 =item *
 
-OS independend file access, the "/" vs. "\" trickery is a hack. *sigh* It's
+OS independent file access, the "/" vs. "\" trickery is a hack. *sigh* It's
 C and we can't just use File::Spec...
 
 =back
@@ -34,20 +37,8 @@ Maybe padd extracted strings to multiples of 4 bytes for speed.
 
 =item *
 
-index sort (sort indices instead of strings) for speed? Similiar,
+index sort (sort indices instead of strings) for speed? Similar,
 implement shellsort (see Sedgewick) for speed?
-
-=item *
-
-could limit it's memory usage better (use more available memory).
-
-=item *
-
-does not yet handle a timeout (make and re-use a global sub for this)
-
-=item *
-
-could use gzip to support gzipped images.
 
 =back
 

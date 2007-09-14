@@ -1,15 +1,14 @@
-use ExtUtils::MakeMaker;
-
-use strict;
-use warnings;
 
 # Creates the Makefile that is used during the build stage "make":
 
-# User changable parts:
+# User changeable parts:
 
 # For each worker, list all the nec. .c files inside "src/workername":
 my $workers = { 
   test		=> [ 'test.c' ],
+  test_cnv	=> [ 'test_cnv.c' ],
+  test_enc	=> [ 'test_enc.c' ],
+  test_sbe	=> [ 'test_sbe.c' ],
   test_par	=> [ 'test_par.c' ],
   pwdtest	=> [ 'pwdtest.c' ],
   extract	=> [ 'extract.c' ],
@@ -20,6 +19,7 @@ my $c_files = [ qw/
   main
   dicop
   hexdump
+  pwd_conv
   pwd_img
   pwd_par
   pwd_util
@@ -33,14 +33,10 @@ my $c_files = [ qw/
 #############################################################################
 #############################################################################
 #
-# No changes neccessary below!
-#
+# No changes necessary below!
 
-use File::Spec;
-
-my $arch = lc($^O);					# mswin32, linux etc
-my $is_win = ($arch =~ /mswin32/);
-my $updir = File::Spec->updir();
+# set $optimize, $flags, $warnings, $updir, $arch and $is_win:
+require "build/Makefile.pm";
 
 # lib/libdicop$(LIB_EXT)
 my $mylib = File::Spec->catfile( 'lib', 'libdicop$(LIB_EXT)');
@@ -58,9 +54,11 @@ for my $c_file (@$c_files)
 my $o_files_lib = $o_files;
 
 my $files =
-	File::Spec->catfile($src, '*.o') . ' ' .
+	'MANIFEST.bak ' .
+	File::Spec->catfile($src, '*$(OBJ_EXT)') . ' ' .
 	File::Spec->catdir('t','test-worker','test.img') . ' ' .
-	File::Spec->catdir('src','blib') . ' ';
+	File::Spec->catdir('src','blib') . ' ' .
+	File::Spec->catfile('lib', "${libprefix}dicop\$(LIB_EXT)") . ' ';
 
 for my $worker (sort keys %$workers)
   {
@@ -79,29 +77,6 @@ for my $worker (sort keys %$workers)
 
 # Now generate the makefile, using subroutines defined below,
 # and values generated above:
-
-my $warnings = '-pedantic';
-$warnings = '' if $is_win;
-
-# XXX TODO: create compiler/version dependend flags here
-
-my $optimize = '-O3 -march=i686 -fmessage-length=0 -pipe';
-$optimize = ' ' if $is_win;
-
-# check arguments to Makefile.PL
-my $flags = ''; my $debug = 0;
-for my $arg (@ARGV)
-  {
-  my $f = uc($arg);
-  $f = '-D' . $f unless $f =~ /^-D/;
-
-  die ("Unknown flag $arg") unless $arg =~ /^-D(DEBUG)\z/;
-
-  $flags .= " $f";
-  $debug = 1 if $f eq '-DDEBUG';
-  }
-$flags .= ' -D_FILE_OFFSET_BITS=64' unless $is_win;
-$flags .= ' -DWIN32' if $is_win;
 
 WriteMakefile(
   NAME		 => 'Dicop-Workerframe',
@@ -163,52 +138,9 @@ sub MY::constants
   return $self->SUPER::constants();
   }
 
-sub MY::makeaperl
-  {
-  '';
-  }
-
 #############################################################################
 # In the subroutines below, the generated text in rc has to have TAB instead
 # of 8 spaces, or the generated Makefile will not accepted by make!
-
-sub MY::test
-  {
-  my $rc = <<EOF
-
-test :: pure_all
-	PERL_DL_NONLAZY=1 \$(FULLPERLRUN) -MExtUtils::Command::MM -e "test_harness(0)" t/*.t
-
-EOF
-;
-
-  # For win32, we need to build the list of test files explicitely:
-
-  opendir my $dir, 't' or die ("Cannot read directory t: $!"); 
-  my @files = readdir $dir;
-  closedir $dir;
-
-  my @t_files;
-  for my $file (sort @files)
-    {
-    my $t = File::Spec->catfile('t',$file);
-    next unless $t =~ /\.t\z/;		# only accept .t files
-    next unless -f $t;
-
-    push @t_files, $t;
-    }
-
-  # finally generate the target text
-  $rc = <<EOF
-
-test :: pure_all
-	\$(FULLPERLRUN) -MExtUtils::Command::MM -e "test_harness(0)" @t_files
-
-EOF
-;
-
-  $rc;
-  }
 
 sub MY::subdirs
   {
@@ -228,17 +160,16 @@ sub MY::subdirs
     my $WO = '$(' . $W . '_O)'; 
     my $result = File::Spec->catfile('t', 'test-worker', $worker);
     my $object = File::Spec->catfile('src', $worker, $worker.'$(OBJ_EXT)');
-    my $main = File::Spec->catfile('src', 'main', 'main'.'$(OBJ_EXT)');
 
     $subdirs_rule .= "$result ";
 
     my $LD = 'LD_RUN_PATH="$(LD_RUN_PATH)" $(LD) -dynamic $(' . $W . '_O) $(OTHERLDFLAGS) -o $@ $(INSTALLPRIVLIB) $(EXPORT_LIST)';
-    $LD = '$(LD) /OUT:"$@$(EXE_EXT)" $(' . $W . '_O) /SUBSYSTEM:CONSOLE $(OTHERLDFLAGS) $(INSTALLPRIVLIB)' if $is_win;
+    $LD = '$(LD) /OUT:"$@$(EXE_EXT)" $(' . $W . '_O) /NOLOGO /SUBSYSTEM:CONSOLE $(OTHERLDFLAGS) $(INSTALLPRIVLIB)' if $is_win;
 
     my $r = "$result: $WO \$(LIB)\n";
     $r = "$result: $WO\n" if $is_win;
 
-    $rc .=  "${W}_O=$object $main\n\n" .
+    $rc .=  "${W}_O=$object $mylib\n\n" .
 	    $r .					# result: ...
 	   "\t" . '$(RM_F) $@$(EXE_EXT)' . "\n" .
 	   "\t" . $LD . "\n" .
@@ -308,31 +239,6 @@ pure_all :: static config pm_to_blib subdirs linkext
 ';
 
   return $rc;
-  }
-
-sub MY::const_cccmd
-  {
-  # generate the section with the command for the c-compiler:
-  'CCCMD = $(CC) -c $(PASTHRU_INC) $(INC) $(CCFLAGS) $(OPTIMIZE)';
-  }
-
-sub MY::c_o
-  {
-  # We need to insert the "-o $*.o" to create "src/main/main.o" opposed to
-  # main.o. This ensures that the .o files are actually found during linking
-  # the library.
-  package MY;
-  my $self = shift;
-
-  my $c_o = $self->SUPER::c_o();
-
-  my $r = ' -o $*$(OBJ_EXT)'; $r = ' -Fo"$*$(OBJ_EXT)"' if $is_win;
-  $c_o =~ s/(\$\(CCCMD\) \$\(.*\$\*\.c)\n/$1$r\n/;
-
-  # we do not need this, so remove it to shorten command lines
-  $c_o =~ s/"-I\$\(PERL_INC\)"//g;
-
-  return $c_o; 
   }
 
 #############################################################################

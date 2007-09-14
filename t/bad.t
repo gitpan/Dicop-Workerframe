@@ -17,7 +17,7 @@ while (<DATA>)
   {
   next if /^#/;
   next if /^\s*$/;
-  chomp();
+  s/[\n\r]//g;		# remove newlines
   my @a = split /,/, $_;
   print "# ", join (' ', @a), "\n";
   my $arguments = join(' ',@a);

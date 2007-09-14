@@ -12,6 +12,7 @@ Makefile\z
 \.a\z
 \.o\z
 \.lib\z
+~\z
 test-worker\/.*\.exe\z
 t\/test-worker\/(?!(charsets.def|README))
 ^Dicop-Workerframe-

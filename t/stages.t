@@ -31,7 +31,7 @@ chdir 'test-worker/';
 my (@args);
 while (<DATA>)
   {
-  chomp();
+  s/[\n\r]//g;		# remove newlines
   next if /^#/;
   next if length($_) == 0;
   @args = split /,/, $_;

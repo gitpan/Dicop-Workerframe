@@ -5,16 +5,17 @@
 
 # permuatations:
 
-#LOWER                      => 1;   # lowercase
-#UPPER                      => 2;   # UPPERCASE
-#LOWER_FIRST                => 4;   # lOWERFIRST
-#UPPER_FIRST                => 8;   # Upperfirst
-#LOWER_LAST                 => 16;  # LOWERLASt
-#UPPER_LAST                 => 32;  # upperlasT
-#UPPER_ODD                  => 64;  # uPpErOdD
-#UPPER_EVEN                 => 128; # UpPeReVEn
-#UPPER_VOWELS               => 256; # UppErvOwEls
-#UPPER_CONSONANTS           => 512; # uPPeRCoNSoNaNTS
+#LOWER                      => 1;    # lowercase
+#UPPER                      => 2;    # UPPERCASE
+#LOWER_FIRST                => 4;    # lOWERFIRST
+#UPPER_FIRST                => 8;    # Upperfirst
+#LOWER_LAST                 => 16;   # LOWERLASt
+#UPPER_LAST                 => 32;   # upperlasT
+#UPPER_ODD                  => 64;   # uPpErOdD
+#UPPER_EVEN                 => 128;  # UpPeReVEn
+#UPPER_VOWELS               => 256;  # UppErvOwEls
+#UPPER_CONSONANTS           => 512;  # uPPeRCoNSoNaNTS
+#ORIGINAL		    => 1024; # as written in the dictionary
 
 # stages:
 # forward, reverse
@@ -32,7 +33,7 @@ chdir 'test-worker/';
 my (@args);
 while (<DATA>)
   {
-  chomp();
+  s/[\n\r]//g;		# remove newlines
   next if /^#/;
   next if length($_) == 0;
   my @args = split /,/, $_;

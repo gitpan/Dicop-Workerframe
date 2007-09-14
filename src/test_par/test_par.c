@@ -99,6 +99,7 @@ void stopfunction( void )
    chance to complete left-over pwds */
 int endfunction(const struct ssPWD *pwd)
   {
+  (void) pwd;
   /* XXX TODO we should test leftover passwords here */
   return PWD_FAIL;
   }
@@ -144,7 +145,7 @@ int dofunction( const struct ssPWD *pwd )
       b[i] = 0;                                             /* zero terminate */
       a2h(b,len-1);
 
-      printf ("At '%s' len %li\n", b, len);
+      printf ("At '%s' len %li\n", b, len-1);
       }
 
     /* make copy of org password for comparisation */

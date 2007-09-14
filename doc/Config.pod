@@ -29,7 +29,7 @@ The value may be enclosed in quotas like this:
 
 	key="value with spaces"
 
-This is especially usefull for spaces, but not neccessarily required.
+This is especially useful for spaces, but not necessarily required.
 
 Examples:
 
@@ -65,15 +65,15 @@ The C<charsetdefinition> varies between the different types of character sets.
 
 =item SET_SIMPLE
 
-A list of characters, in hex, seperated by C<:>.
+A list of characters, in hex, separated by C<:>.
 
 =item SET_GROUPED
 
-A list of C<pos,charset_id> pairs, seperated by C<:>.
+A list of C<pos,charset_id> pairs, separated by C<:>.
 
 =item SET_DICTIONARY
 
-A list of C<pos,charset_id,min_length,max_length> pairs, seperated by C<:>.
+A list of C<pos,charset_id,min_length,max_length> pairs, separated by C<:>.
 C<pos> is the position (0 - prepend, 1 - append) on where to put strings from
 C<charset_id> of length C<min_length .. max_length> to each of the words
 from the dictionary charset.
@@ -90,7 +90,7 @@ further options.
 
 The JDF (formerly known as charset description file) is used when the
 C<charset_id> given to a worker is not a plain number, but a filename like
-C<../../taregt/data/42/42.set>. 
+C<../../target/data/42/42.set>. 
 
 The reason is that this file can contain additional parameters specific to
 each job that are impossible to carry over the command line.
@@ -117,17 +117,33 @@ This key can also be set in the chunk description file.
 
 =item dictionary_mutations
 
-Bitfield describing the various dictionary mutations applied to each word.
-There are currently ten different mutations and the maximum value is thus
-1023.
+Bit field describing the various dictionary mutations applied to each word.
+There are currently eleven different mutations and the maximum value is thus
+2047.
 
 Only used if L<charset_id> is of the type SET_DICTIONARY.
 
 This key can also be set in the chunk description file.
 
+The different bits are defined as follows:
+
+ #define		      Decimal	Description
+ ===========================================================
+ DICT_LOWER                         1	lowercase
+ DICT_UPPER                         2	UPPERCASE
+ DICT_LOWER_FIRST                   4	lOWERFIRST
+ DICT_UPPER_FIRST                   8	Upperfirst
+ DICT_LOWER_LAST                   16	LOWERLASt
+ DICT_UPPER_LAST                   32	upperlasT
+ DICT_UPPER_ODD                    64	uPpErOdD
+ DICT_UPPER_EVEN                  128	UpPeReVEn
+ DICT_UPPER_VOWELS                256	UppErvOwEls
+ DICT_UPPER_CONSONANTS            512	uPPeRCoNSoNaNTS
+ DICT_ORIGINAL			 1024	The word as written
+
 =item dictionary_stages
 
-Bitfield describing the various dictionary stages applied to each word.
+Bit field describing the various dictionary stages applied to each word.
 
 There are currently two, C<forward> and C<reverse>.
 
@@ -137,7 +153,7 @@ This key can also be set in the chunk description file.
 
 =item password_prefix
 
-A fixed prefix for each password in the keyspace, in hex.
+A fixed prefix for each password in the keys pace, in hex.
 
 =item extra0, extra1, extra2, ...
 
@@ -192,7 +208,7 @@ from there will also be used. See L<Charset description file> for details.
 
 Since it is also possible to use all the settings from a charset description
 file inside the chunk description file, it is easier to set them directly
-(in this chunk description file) instead of refering to another file (in an
+(in this chunk description file) instead of referring to another file (in an
 additional charset description file). But the current workerframe supports
 both ways. The current server implementation will always use a numerical
 charset ID here.
@@ -204,11 +220,11 @@ L<charset_id> is of the type SET_EXTRACT.
 
 =item start
 
-Start password, or in case of SET_EXTRAC minimum length to extract.
+Start password, or in case of SET_EXTRACT minimum length to extract.
 
 =item end
 
-End password, or in case of SET_EXTRAC maximum length to extract.
+End password, or in case of SET_EXTRACT maximum length to extract.
 
 =item target
 
@@ -245,7 +261,7 @@ more gentle way of extracting extra strings.
 
 When extracting strings, and this option set to 1, will also extract strings
 by looking only at every odd (or later every even) byte. This will catch strings
-in simple unicode format or other formattins that are like this:
+in simple Unicode format or other formats that are like this:
 
 	00 41 00 42 00 43 00 44		.A.B.C.D
 
@@ -277,7 +293,7 @@ in the CDF to make manual setups easier. See above for further information. If
 they are specified in both files, then CDF takes precedence.
 
 The current server implementation will always write only a JDF or CDF,
-depending on whether per-chunk params are necessary (CDF) or not (JDF).
+depending on whether per-chunk parameters are necessary (CDF) or not (JDF).
 
 =over 2
 
@@ -296,7 +312,7 @@ and used automatically by the framework.
 
 =head1 AUTHOR
 
-(C) Bundesamt fuer Sicherheit in der Informationstechnik 1998-2006.
+(C) Bundesamt fuer Sicherheit in der Informationstechnik 1998-2007.
 
 For licensing information please refer to the LICENSE file.
 
@@ -304,9 +320,9 @@ For licensing information please refer to the LICENSE file.
 
 Address: BSI
 	 Referat 123
-	 Godesberger Alle 185-189
+	 Godesberger Allee 185-189
 	 Bonn
 	 53175
 	 Germany
-email:	 dicop @ bsi.bund.de	(for public key see dicop.asc or website)
+email:	 dicop @ bsi.bund.de	(for public key see dicop.asc or web site)
 

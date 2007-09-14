@@ -3,93 +3,24 @@
  * @ingroup workerframe
  * @brief Dictionary reading, mutation of strings.
  * 
- * Copyright &copy; 1998-2006, Bundesamt fuer Sicherheit in der Informationstechnik (BSI)
- * 
- * This file is part of Dicop-Workerframe. For licencing information see the
- * file LICENCE in the distribution, or http://www.bsi.bund.de/
- *  
- * @author Bundesamt fuer Sicherheit in der Informationstechnik (BSI)
+ * @copydoc copyrighttext
 */
 
 #include <dicop.h>
 #include <pwdread.h>
 #include <pwddict.h>
 
-char
-uc_vowels (char a)
-{
-  if ((a >= 'a') && (a <= 'z'))
-    {
-      if (a == 'a')
-	{
-	  return 'A';
-	}
-      if (a == 'o')
-	{
-	  return 'O';
-	}
-      if (a == 'u')
-	{
-	  return 'U';
-	}
-      if (a == 'i')
-	{
-	  return 'I';
-	}
-      if (a == 'e')
-	{
-	  return 'E';
-	}
-    }
-  return a;
-}
-
-char
-uc_consonants (char a)
-{
-  if ((a == 'a') || (a == 'o') || (a == 'u') ||
-      (a == 'i') || (a == 'e'))
-    {
-      return a;
-    }
-  if ((a >= 'a') && (a <= 'z'))
-    {
-      return a - ('a' - 'A');
-    }
-  return a;
-}
-
-char
-uc (char a)
-{
-  if ((a >= 'a') && (a <= 'z'))
-    {
-      return a - ('a' - 'A');
-    }
-  return a;
-}
-
-char
-lc (char a)
-{
-  if ((a >= 'A') && (a <= 'Z'))
-    {
-      return a + ('a' - 'A');
-    }
-  return a;
-}
-
 /* ************************************************************************* */
 /* mutate a basic word from the dictionary (org_word) into word
-   until all mutations were done, then signal done and start all over
+   until all mutations are done, then signal done and start all over
    This one mutates like forward, reverse etc. Each of these mutations stages
    is then mutated further with lowercase, uppercase etc
 */
 
 void
 pwddict_stage (struct ssPWD *sPWD)
-{
-  unsigned int wl, i;
+  {
+  struct sPwdString *word;
 
 #ifdef DEBUG
   printf ("\n  current stage %i\n", sPWD->cur_stage);
@@ -103,37 +34,25 @@ pwddict_stage (struct ssPWD *sPWD)
       sPWD->cur_stage <<= 1;
     }
 
-  /* big ole case statement to cover all the cases */
+  /* word is read-only */
+  word = (struct sPwdString *) sPWD->word;
+  /* copy over the original word */
+  pwdgen_strdup(sPWD, word, sPWD->org_word);
 
-  wl = sPWD->org_word_length;
-  switch (sPWD->cur_stage)
+  if (sPWD->cur_stage == DICT_REVERSE)
     {
-    case DICT_FORWARD:
-      {
-	for (i = 0; i < wl; i++)
-	  {
-	    sPWD->word[i] = sPWD->org_word[i];
-	  }
-	sPWD->word_length = wl;
-	break;
-      }
-    case DICT_REVERSE:
-      {
-	for (i = 0; i < wl; i++)
-	  {
-	    sPWD->word[i] = sPWD->org_word[wl - i - 1];
-	  }
-	sPWD->word_length = wl;
-	break;
-      }
+    pwdgen_strrev(sPWD, word);
     }
-  /* zero terminate */
-  sPWD->word[sPWD->word_length] = 0;
+
+#ifdef DEBUG
+  printf ("\nCovered stage %i\n", sPWD->cur_stage);
+  hexdump_string(sPWD, sPWD->word);
+  hexdump("pwd:", sPWD->pwd, sPWD->length);
+#endif
 
   /* clear the currently done stage from the bitmask */
   sPWD->done_stages &= ~sPWD->cur_stage;
-
-}
+  }
 
 int
 pwddict_trynext (struct ssPWD *pwd)
@@ -144,11 +63,10 @@ pwddict_trynext (struct ssPWD *pwd)
   if (pwd->done_mutations == 0)
     {
       pwd->done_mutations = pwd->todo_mutations;
-      pwd->cur_mutation = 1;
+      pwd->cur_mutation = pwd->first_mutation;
       /* looped through all the mutation stages (like forward, reverse etc) */
 
-      /* if all stages done, so let's read us the next word first */
-
+      /* if all stages done, so let read us the next word first */
       if (pwd->done_stages == 0)
 	{
 	  if ((rc = pwddict_nextword (pwd)) != 0)
@@ -167,14 +85,21 @@ pwddict_trynext (struct ssPWD *pwd)
 	}
       pwddict_stage (pwd);	/* cover the first stage of new word */
     }
-  /* have still to work */
+  if (pwd->pwd != pwd->cur->content)
+    {
+#ifdef DEBUG
+    printf ("Producing first encoding: %s\n", pwdgen_encoding(pwd->encoding[0]));
+#endif
+    pwdgen_update_cur(pwd, 1);
+    }
+  /* still have work to do */
   return 0;
 }
 
 /* ************************************************************************* */
 /* mutate a basic word from the dictionary into pwd until all
    mutations were done, then get next word and start mutation series
-   all over. This mutates lower/upper case combination. 
+   all over. This mutates lowercase/uppercase etc. combinations. 
    return codes: 0 - okay, next pwd
                  1 - overshot, last pwd checked, stop now
                  4 - timeout, stopped in midst
@@ -186,6 +111,49 @@ pwddict_next (struct ssPWD *sPWD)
   unsigned int i;
   unsigned int pl, last;
   struct ssPWD *gen;
+  struct sPwdString *cur;
+
+  /* check how many encodings we have, and if we need to produce the
+     current password in more than one encoding */
+  if (sPWD->pwd != sPWD->cur->content)
+    {
+    if ( (sPWD->cur_encoding > 0) &&
+         (sPWD->cur_encoding < sPWD->encodings) )
+      {
+#ifdef DEBUG
+      printf ("Producing next encoding: %s\n",
+        pwdgen_encoding(sPWD->encoding[sPWD->cur_encoding]));
+#endif
+
+      /* if 0, then the current password contained high-bit chars and
+         a conversion to the other requested charsets was nec. */
+      if (0 == pwdgen_update_cur(sPWD, 0))
+        {
+        /* this increment here might increase pwds_done higher than
+           pwds_max, so the timeout check might run a bit later. However,
+           the number of requested encodings is typically very small (<5),
+           and this should not pose a problem */
+        sPWD->pwds_done++;
+
+        /* we are done here */
+        return PWD_OK;
+        }
+      }
+
+#ifdef DEBUG
+    printf ("Produced last encoding, reset (%lli) (%lli)\n", sPWD->cur_encoding, sPWD->encodings);
+#endif
+
+    /* if start pwd == end pwd, we need to stop after we reached all the
+       encodings, so setup things to terminates the loop in main.c */
+    if ( (0 != sPWD->cur_encoding) && (0 != sPWD->_last_pwd) )
+      {
+      return 1;
+      }
+    /* continue normally (with the first encoding, either because it is
+       already 0, or we hit the last, resetting it to 0 again) */
+    sPWD->cur_encoding = 0;
+    }
 
 #ifdef DEBUG
   printf ("\n  current mutation %i\n", sPWD->cur_mutation);
@@ -198,7 +166,7 @@ pwddict_next (struct ssPWD *sPWD)
       gen = &sPWD->gen_pwd[sPWD->append - 1];
 
 #ifdef DEBUG
-      printf ("Still in append\n");
+      printf ("Still in append/prepend\n");
 #endif
 
       if (sPWD->set->pos[sPWD->append - 1] == 0)	/* 0 - append, 1 prepend */
@@ -206,8 +174,8 @@ pwddict_next (struct ssPWD *sPWD)
 #ifdef DEBUG
 	  printf ("appending\n");
 #endif
-	  /* append password to "$prefix$word" */
-	  pl = sPWD->prefix_length + sPWD->word_length;
+	  /* append password to "$word" */
+	  pl = sPWD->word->bytes;
 	  /* TODO: copy over only the changed characters (check overflow) */
 	  for (i = 0; i < gen->gen_length; i++)
 	    {
@@ -220,36 +188,42 @@ pwddict_next (struct ssPWD *sPWD)
 #ifdef DEBUG
 	  printf ("prepending %i\n", sPWD->prepend);
 #endif
-	  /* for the very first prepended pwd, move the word out of the way */
-	  pl = sPWD->prefix_length;
+	  /* for the very first prepended pwd, make a copy of the current word */
 	  if (sPWD->prepend == 0)
 	    {
-	      for (i = 0; i < sPWD->word_length; i++)
+	      for (i = 0; i < sPWD->word->bytes; i++)
 		{
-		  sPWD->word_2[i] = sPWD->pwd[i + pl];
+		  sPWD->word_2[i] = sPWD->pwd[i];
 		}
 	      sPWD->word_2[i] = 0;
 	      sPWD->prepend++;	/* do the move only once */
 	    }
 	  /* TODO: copy over only the changed characters (check overflow) */
-	  /* create "$prefix$generatedword"; */
+	  /* create "$generatedword"; */
 	  for (i = 0; i < gen->gen_length; i++)
 	    {
-	      sPWD->pwd[i + pl] = gen->pwd[i];
+	      sPWD->pwd[i] = gen->pwd[i];
 	    }
 	  pl = i;
-	  /* create "$prefix$generatedword$word"; */
-	  for (i = 0; i < sPWD->word_length; i++)
+	  /* create "$generatedword$word"; */
+	  for (i = 0; i < sPWD->word->bytes; i++)
 	    {
 	      sPWD->pwd[i + pl] = sPWD->word_2[i];
 	    }
 	  sPWD->pwd[i + pl] = 0;	/* zero terminate */
 	}
-      sPWD->length =
-	sPWD->prefix_length + sPWD->word_length + gen->gen_length;
+      /* calculate the new current password length (not including the prefix) */
+      sPWD->length = sPWD->word->bytes + gen->gen_length;
+      /* for case where we do not convert pwd=>cur->content, set the length, too */
+      /* cur is read-only: */
+      cur = (struct sPwdString *) sPWD->cur;
+      cur->bytes = sPWD->length;
+      cur->characters = -1;
+      cur->encoding = sPWD->generator_encoding;
 
 #ifdef DEBUG
-      printf ("Next pwd (%li)\n", sPWD->pwds_done);
+      printf ("Next pwd (%li)\n", (long int)sPWD->pwds_done);
+      printf ("curlen %i wordlen %i genlen %i\n", sPWD->length, sPWD->word->bytes, gen->gen_length);
 #endif
 
       /* generate next password */
@@ -275,15 +249,11 @@ pwddict_next (struct ssPWD *sPWD)
 
 	      /* get next stage/mutation or word */
 	      /* the next check is duplicated here from below (see lower check). The
-	         reason is that when doing only muatations, we need the lower check,
+	         reason is that when doing only mutations, we need the lower check,
 	         but when doing append, we also need the upper check. Currently I
 	         see now way around this, otherwise we either duplicate one password
 	         or miss one. */
-	      if (sPWD->done_mutations == 0)
-		{
-		  return pwddict_trynext (sPWD);
-		}
-	      return 0;
+	      return pwddict_trynext (sPWD);
 	    }
 	  else
 	    {
@@ -294,147 +264,123 @@ pwddict_next (struct ssPWD *sPWD)
 	      pwdgen_reinit (&sPWD->gen_pwd[sPWD->append - 1]);
 	    }
 	}
+      if (sPWD->pwd != sPWD->cur->content)
+        {
+#ifdef DEBUG
+        printf ("Producing first encoding: %s\n", pwdgen_encoding(sPWD->encoding[0]));
+#endif
+        pwdgen_update_cur(sPWD, 1);
+        }
       return 0;
     }
 
-  pl = sPWD->prefix_length;
-  sPWD->length = sPWD->word_length + sPWD->prefix_length;
+  pl = sPWD->prefix->bytes;
+  sPWD->length = sPWD->word->bytes;
+  /* cur is read-only: */
+  cur = (struct sPwdString *) sPWD->cur;
+
+  /* copy in the word */
+  pwdgen_strdup(sPWD, cur, sPWD->word);
 
 #ifdef DEBUG
   printf ("after append\n");
   printf ("  current mutation %i\n", sPWD->cur_mutation);
   printf ("  done mutation %i\n", sPWD->done_mutations);
   printf ("  prefix length %i\n", pl);
-  printf ("  word: '%s'\n", sPWD->word);
+  pwdgen_print (sPWD, "  word: '%s'\n", sPWD->word);
 #endif
-
-  if (sPWD->cur_mutation == 1)
-    {
-      /* last mutation was done, we reset and read in a new word, so we now must
-         set the length */
-      sPWD->length = sPWD->word_length + pl;
-    }
 
   /* loop from the cur mutation through all the possible ones */
   while (((sPWD->done_mutations) & (sPWD->cur_mutation)) == 0)
     {
-      sPWD->cur_mutation <<= 1;
+    sPWD->cur_mutation <<= 1;
     }
 
   /* now we have in cur_mutation the one we need to do next */
 
 #ifdef DEBUG
   printf ("  current mutation %i\n", sPWD->cur_mutation);
-  printf ("  prefix length %i\n", pl);
-  printf ("  word: '%s'\n", sPWD->word);
 #endif
 
   /* big ole case statement to cover all the cases */
 
   switch (sPWD->cur_mutation)
     {
+    case DICT_ORIGINAL:
+      {
+	/* nothing to do */
+	break;
+      }
     case DICT_LOWER:
       {
-#ifdef DEBUG
-	printf ("DICT_LOWER\n");
-#endif
-	for (i = 0; i < sPWD->word_length; i++)
-	  {
-	    sPWD->pwd[pl + i] = lc (sPWD->word[i]);
-	  }
+	pwdgen_lc(sPWD, cur);
 	break;
       }
     case DICT_UPPER:
       {
-	for (i = 0; i < sPWD->word_length; i++)
-	  {
-	    sPWD->pwd[pl + i] = uc (sPWD->word[i]);
-	  }
+	pwdgen_uc(sPWD, cur);
 	break;
       }
     case DICT_UPPER_FIRST:
       {
-	sPWD->pwd[pl] = uc (sPWD->word[0]);
-	for (i = 1; i < sPWD->word_length; i++)
-	  {
-	    sPWD->pwd[pl + i] = lc (sPWD->word[i]);
-	  }
+	pwdgen_uc_first(sPWD, cur);
 	break;
       }
     case DICT_LOWER_FIRST:
       {
-	sPWD->pwd[pl] = lc (sPWD->word[0]);
-	for (i = 1; i < sPWD->word_length; i++)
-	  {
-	    sPWD->pwd[pl + i] = uc (sPWD->word[i]);
-	  }
+	pwdgen_lc_first(sPWD, cur);
 	break;
       }
     case DICT_UPPER_ODD:
       {
-	/* might touch the final 0x00 */
-	for (i = 0; i < sPWD->word_length; i++)
-	  {
-	    sPWD->pwd[pl + i] = lc (sPWD->word[i]);
-	    i++;
-	    sPWD->pwd[pl + i] = uc (sPWD->word[i]);
-	  }
+	pwdgen_uc_odd(sPWD, cur);
 	break;
       }
     case DICT_UPPER_EVEN:
       {
-	/* might touch the final 0x00 */
-	for (i = 0; i < sPWD->word_length; i++)
-	  {
-	    sPWD->pwd[pl + i] = uc (sPWD->word[i]);
-	    i++;
-	    sPWD->pwd[pl + i] = lc (sPWD->word[i]);
-	  }
+	pwdgen_uc_even(sPWD, cur);
 	break;
       }
     case DICT_UPPER_LAST:
       {
-	unsigned int j = sPWD->word_length - 1;
-	for (i = 0; i < j; i++)
-	  {
-	    sPWD->pwd[pl + i] = lc (sPWD->word[i]);
-	  }
-	sPWD->pwd[pl + j] = uc (sPWD->word[j]);
+	pwdgen_uc_last(sPWD, cur);
 	break;
       }
     case DICT_LOWER_LAST:
       {
-	unsigned int j = sPWD->word_length - 1;
-	for (i = 0; i < j; i++)
-	  {
-	    sPWD->pwd[pl + i] = uc (sPWD->word[i]);
-	  }
-	sPWD->pwd[pl + j] = lc (sPWD->word[j]);
+	pwdgen_lc_last(sPWD, cur);
 	break;
       }
     case DICT_UPPER_VOWELS:
       {
-	unsigned int j = sPWD->word_length;
-	for (i = 0; i < j; i++)
-	  {
-	    sPWD->pwd[pl + i] = uc_vowels (sPWD->word[i]);
-	  }
+	pwdgen_uc_vowels(sPWD, cur);
 	break;
       }
     case DICT_UPPER_CONSONANTS:
       {
-	unsigned int j = sPWD->word_length;
-	for (i = 0; i < j; i++)
-	  {
-	    sPWD->pwd[pl + i] = uc_consonants (sPWD->word[i]);
-	  }
+	pwdgen_uc_consonants(sPWD, cur);
 	break;
       }
     }
 
-  /* zero terminate */
-  sPWD->pwd[pl + sPWD->word_length] = 0;
+  /* now move the word into the pwd var */
+  if (sPWD->pwd != sPWD->cur->content)
+    {
+    memcpy (sPWD->pwd, cur->content, cur->bytes);
+    }
 
+  /* do we need to update cur, too? */
+  if ((pl != 0) || (sPWD->pwd != sPWD->cur->content))
+    {
+    pwdgen_update_cur(sPWD, 1);
+    sPWD->cur_encoding = 0;
+    }
+
+#ifdef DEBUG
+  hexdump_string ("cur", sPWD->cur);
+  printf ("update_cur: len: %i",sPWD->length);
+#endif
+ 
   /* clear the currently done mutation from the bitmask */
   sPWD->done_mutations &= ~sPWD->cur_mutation;
 
@@ -455,24 +401,26 @@ pwddict_next (struct ssPWD *sPWD)
 #ifdef DEBUG
       printf (" first %p (cur %p)\n ", &sPWD->gen_pwd[0], sPWD);
 #endif
-      pwdgen_reinit (&sPWD->gen_pwd[0]);
+      pwdgen_reinit (sPWD->gen_pwd);
       /* now we have set anything up for prepend/append next round */
+      if (sPWD->pwd != sPWD->cur->content)
+        {
+#ifdef DEBUG
+        printf ("Producing first encoding: %s\n", pwdgen_encoding(sPWD->encoding[0]));
+#endif
+        pwdgen_update_cur(sPWD, 1);
+        }
       return 0;
     }
 
-  if (sPWD->done_mutations == 0)
-    {
-      return pwddict_trynext (sPWD);
-    }
-  return 0;
-
+  return pwddict_trynext (sPWD);
 }
 
 /* ************************************************************************* */
 /**
    INTERNAL:<br>
 	read the next word from the dictionary file, used by
-	fast_forward()<br>
+	pwdgen_fastforward()<br>
    returns:<br>
 	- 0 for ok,
 	- 1 for all words done,
@@ -484,6 +432,7 @@ unsigned int
 pwddict_nextword (struct ssPWD *sPWD)
 {
   unsigned int wl;
+  struct sPwdString* org_word;
 
   /* check timeout and calculate number of pwds done */
   if (sPWD->pwds_done > sPWD->max_pwds)
@@ -492,13 +441,9 @@ pwddict_nextword (struct ssPWD *sPWD)
     sPWD->pwds_done = 0;
 
     /* status report or timeout check? */
-    if ((sPWD->timeout != 0) || (sPWD->report_status > 0))
+    if (pwdgen_time_check(sPWD) != 0)
       {
-      if (pwdgen_time_check(sPWD) != 0)
-	{
-	/* timeout */
-	return PWD_TIMEOUT;
-	}
+      return PWD_TIMEOUT;
       }
     }
 
@@ -517,36 +462,50 @@ pwddict_nextword (struct ssPWD *sPWD)
       return 1;
     }
 
-  /* read one line and get it's length */
-  fgets ((char *)&sPWD->org_word[0], 254, sPWD->dict_file);
-  sPWD->org_word_length = strlen ((const char *)sPWD->org_word);
-  if (sPWD->org_word_length == 0)
+  /* org_word is read-only: */
+  org_word = (struct sPwdString*)sPWD->org_word;
+
+  /* read one line and get its length */
+  fgets ((char *)org_word->content, 254, sPWD->dict_file);
+  /* zero terminate just in case */
+  org_word->content[254] = 0;
+  org_word->bytes = strlen (org_word->content);
+  org_word->characters = -1;
+  org_word->encoding = sPWD->generator_encoding;
+
+  if (org_word->bytes == 0)
     {
       /* hm, no eof, but can't read any data - disk on fire? */
       return 1;
     }
 
-  wl = sPWD->org_word_length - 1;	/* set to last char */
+  wl = org_word->bytes - 1;		/* set to last char */
 
   /* kill any new line chars (0xa,0xd,0x0a0d,0x0d0a etc) */
-  if ((sPWD->org_word[wl] == 0x0a) || (sPWD->org_word[wl] == 0x0d))
+  /* XXX TODO this doesn't work if the file is in UTF-16 etc. */
+  if ((org_word->content[wl] == 0x0a) || (org_word->content[wl] == 0x0d))
     {
-      sPWD->org_word[wl] = 0;
+      org_word->content[wl] = 0;
       wl--;
-      if ((sPWD->org_word[wl] == 0x0a) || (sPWD->org_word[wl] == 0x0d))
+      if ((org_word->content[wl] == 0x0a) || (org_word->content[wl] == 0x0d))
 	{
-	  sPWD->org_word[wl] = 0;
+	  org_word->content[wl] = 0;
 	  wl--;
 	}
     }
-  sPWD->org_word_length = wl + 1;	/* real length again */
-  /* overflow goes from 1 to length */
-  sPWD->overflow = sPWD->org_word_length;
+  org_word->bytes = wl + 1;	/* real length again */
+  org_word->characters = -1;
+  org_word->encoding = sPWD->generator_encoding;
 
-  if (sPWD->org_word_length == sPWD->endlen)
+  /* overflow goes from 1 to length */
+  sPWD->overflow = org_word->bytes;
+
+  /* if the end password is set to "", then we will just go until we hit
+     the end of the dictionary file */
+  if (sPWD->org_word->bytes == sPWD->endlen)
     {
       /* reached last word? */
-      if (strcmp ((const char *)sPWD->org_word,(const char *) sPWD->end) == 0)
+      if (strcmp (sPWD->org_word->content, sPWD->end) == 0)
 	{
 	  /* just set a flag, since we need to do all the mutations, too */
 	  sPWD->last_word = 1;
@@ -570,7 +529,7 @@ pwddict_openfile (struct ssPWD *sPWD)
 
   /* assume we are in the worker/architecture dir and need to go up twice */
   strcpy (filename, "target/dictionaries/");
-  strncat (filename, (const char *)sPWD->dictionary, 200);
+  strncat (filename, sPWD->dictionary, 200);
   printf ("\n Opening dictionary file '%s'... ", filename);
   if (NULL == (sPWD->dict_file = pwdgen_find_file (filename, "r")))
     {
@@ -582,10 +541,8 @@ pwddict_openfile (struct ssPWD *sPWD)
 
 /* ************************************************************************* */
 /* INTERNAL: read lines from the dictionary file until the line matches the
-	     wanted start pwd
-	     This really could benefit from getting the offset of the first
-	     word in the file.
-   returns 0 for ok, and != 0 for error (not found, due to file end reached)
+	     wanted start pwd.\n
+   returns 0 for ok, and != 0 for error (word not found, eof etc.)
    */
 
 unsigned int
@@ -593,6 +550,7 @@ pwddict_fastforward (struct ssPWD *sPWD)
 {
   unsigned int rc;
   unsigned int first_word = 0;
+  struct ssPWD *pwd = sPWD;
 
   /* if file offset > 0, we skip ahead and denote that the next read word
      is not the first one (e.g. we need to skip one more afterwards */
@@ -617,12 +575,17 @@ pwddict_fastforward (struct ssPWD *sPWD)
 	  printf ("\nError: Cannot find start word in dictionary.\n");
 	  return 1;
 	}
+      /* if pwd->start eq '', then we do the dictionary from the very start */
+      if (pwd->startlen == 0)
+        {
+        break;
+        }
       rc = 1;
-      if (sPWD->org_word_length == sPWD->startlen)
+      if (sPWD->org_word->bytes == sPWD->startlen)
 	{
 	  /* found the start password? */
 	  /* rc == < 0, 0, > 0 */
-	  rc = strcmp ((const char *)sPWD->org_word,(const char *) &sPWD->pwd[sPWD->prefix_length]);
+	  rc = strcmp (sPWD->org_word->content, sPWD->pwd);
 	}
       first_word++;
     }

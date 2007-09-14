@@ -1,22 +1,46 @@
 
 =pod
 
-=head1 Parallel execution/Multithreading
+=head1 PARALLEL PASSWORD CHECKING
 
 You can use perldoc to read this document: C<perldoc README>.
 
-Last update: 2005-03-16
+Last update: 2007-09-07
 
 =head2 Overview
 
-Not ready yet.
+The Dicop Workerframe has two operating modi:
+
+=head3 Sequential
+
+This is the default mode. In this case each generated password will
+trigger an immidiate call to C<< dofunction() >>.
+
+=head3 Parallel
+
+In this mode, which has to be specially setup in C<< initfunction() >>,
+passwords of the same length will be gathered in a buffer, and when
+enough passwords have been accumulated, a single call to C<< dofunction() >>
+will be issued.
+
+This enables the C<< dofunction() >> to check all these passwords at once,
+possible offloading the work to an external hardware or processor.
 
 =head1 AUTHOR
 
-(c) Bundesamt fuer Sicherheit in der Informationstechnik 1998-2005
+(c) Bundesamt fuer Sicherheit in der Informationstechnik 1998-2007.
 
 The DiCoP Workerframe falls under the BSD license.
 
 See the file LICENSE or L<http://www.bsi.de/> for more information.
+
+=head2 Contact
+
+Address: BSI
+	 Referat 123
+	 Godesberger Allee 185-189
+	 53175 Bonn
+	 Germany
+email:	 dicop @ bsi.bund.de	(for public key see dicop.asc or website)
 
 =cut

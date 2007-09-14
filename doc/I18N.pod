@@ -1,0 +1,80 @@
+
+=pod
+
+=head1 INTERNATIONALIZATION (I18N)
+
+You can use perldoc to read this document: C<perldoc README>.
+
+Last update: 2007-09-07
+
+=head2 Introduction
+
+Not done yet.
+
+=head2 Access to the current password
+
+In C< dofunction() >, instead of accessing C<< pwd->pwd >> and
+C<< pwd->length >>, you need to access the C<< pwd->cur >> string struct.
+This struct has the following fields:
+
+=over 2
+
+=item bytes
+
+The length of the string in bytes, excluding the final zero byte(s).
+
+=item characters
+
+The length of the string in characters, or -1 if this is not yet known. You
+can use C<< pwdgen_strlen(pwd, pwd->cur); >> to set this field.
+
+=item encoding
+
+The encoding this string is in. Use C<< pwdgen_encoding(pwd->cur->encoding) >>
+to get a readable name of the encoding.
+
+=item content
+
+A pointer to the raw bytes of the string.
+
+=back
+
+The C<< pwd->cur >> struct is read-only, if you want to modify if by either
+appending something to it, changing the encoding etc., then you B< MUST > make
+a copy first:
+
+        struct sPwdString *temp;
+
+        temp = pwdgen_strcpy(pwd, pwd->cur);
+        if (temp == NULL)
+          {
+          /* some error happened */
+          }
+
+=head2 Working with strings
+
+To work with strings, a handful of routines exist. These enable you to
+duplicate/copy strings, to convert them to lower or upper case, or
+increase their buffer size, as well as convert the strings between different
+encodings.
+
+For a full list see the embedded Doxygen documentation of C<src/main/pwd_conv.c>.
+
+=head1 AUTHOR
+
+(c) Bundesamt fuer Sicherheit in der Informationstechnik 1998-2007.
+
+The DiCoP Workerframe falls under the BSD license.
+
+See the file LICENSE or L<http://www.bsi.de/> for more information.
+
+=head2 Contact
+
+Address: BSI
+	 Referat 123
+	 Godesberger Allee 185-189
+	 53175 Bonn
+	 Germany
+email:	 dicop @ bsi.bund.de	(for public key see dicop.asc or web site)
+
+=cut

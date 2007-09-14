@@ -3,10 +3,54 @@
 
 =head1 History revision for Dicop-WorkerFrame
 
-This document details all the changes for v2.15 - for an older changelog
-please see the C<CHANGES-2.14> file.
+This document details all the changes from v2.15 onwards - for an older
+change log please see the C<CHANGES-2.14> file.
 
-=head2 2006-12-20 (v2.17 rev 384)
+=head2 2007-09-14 (v2.18 rev 546)
+
+Please note that the API has changed slightly, you must adapt your code!
+
+Instead of C<< pws->pwd >> and C<< pwd->length >>, use
+C<< pwd->cur->content >> and C<< pwd->cur->bytes >> to access the current
+password. See C<< doc/I18N.pod >> for more details.
+
+=over 2
+
+=item added
+
+	support for "prefix" and "prefix_encoding" in config files
+	(unlike "password_prefix", "prefix" is in ASCII/UTF_8 etc)
+	pwdgen_strdup(), and pwdgen_strrev()
+	pwdgen_uc_first(), pwdgen_uc_last() etc.
+
+=item fixed
+
+	dictionary code can also try the password exactly as written
+
+=back
+
+=head2 2007-08-30 (v2.18 rev 525)
+
+=over 2
+
+=item added
+
+	convert strings from/to different character sets
+	support for different encodings (UTF-8, ISO 8859-1 etc)
+	added a test_enc worker that tests encodings and conversions
+	--identify command line switch support
+	allow "dictionary" in config files as alias for "dictionary_file"
+
+=item fixed
+
+	Fixed a lot of compiler warnings, and made the compiler options
+	  detection much more robust, so it will build on more platforms
+	Removed the unused "image_type" from config file support and code
+	extract code uses a bit more memory, and checks for timeouts now
+
+=back
+
+=head2 2006-12-20 (v2.17 rev 385)
 
 Too many things have changed to be listed here, so this is just a short
 overview. Please note that the API has changed slightly, you must adapt
@@ -30,6 +74,7 @@ See the example in src/test/test.c for guidance.
 	define macros for file support (read/open(close) with error handling
 	very large file support (> 2GB)
 	remove the outdated pwdblock worker example
+	output the status of the work in progress every couple of minutes
 	add Doxygen support
 	16675 tests
 

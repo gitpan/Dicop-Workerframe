@@ -38,17 +38,18 @@ char target[512];
 /* called once when the worker starts */
 void printinfo(void)
   {
-  printf ("DiCoP Testsuite worker v0.09 (C) Copyright by BSI 1998-2006\n\n");
+  printf ("DiCoP Testsuite worker v0.09 (C) Copyright by BSI 1998-2007\n\n");
+  PRINT_INFO;
   }
 
 /* called once when the worker starts */
 int initfunction(const struct ssPWD *pwd)
   {
   target[0] = 0;		/* zero terminate */
-  if (pwd->prefix_length != 0)
+  if (pwd->prefix->bytes != 0)
     {
-    strncpy(target,pwd->prefix,128);		/* store prefix */
-    a2h(target,pwd->prefix_length);
+    strncpy(target,pwd->prefix->content,128);		/* store prefix */
+    a2h(target,pwd->prefix->bytes);
     /* append target password in ascii */
     strncat(target,pwd->target,128);
     }
@@ -65,26 +66,28 @@ int initfunction(const struct ssPWD *pwd)
 int dofunction( const struct ssPWD *pwd )
   {
   char b[1024];
+  unsigned long plen;
   unsigned int i;
 
+  plen = pwd->cur->bytes;
   /* make copy of org password */
-  for (i = 0; i < pwd->length; i++)
+  for (i = 0; i < plen; i++)
     {
-    b[i] = pwd->pwd[i];
+    b[i] = pwd->cur->content[i];
     }
   b[i] = 0;						/* zero terminate */
-  a2h(b,pwd->length);
+  a2h(b,plen);
 
   if (pwd->timeout == 0)				/* for testsuite */
     {
-    printf ("\nAt '%s' len %i",b,(int)pwd->length);
+    printf ("\nAt '%s' len %li",b, plen);
     }
 
   /* update the crc with data that depends on the password, since we do not
      use the password to decrypt any actual data or something along these
      lines, we just add up the passwords. In reality, this should not be
      done, but rather some sort of password-depended cleartext must be used */
-  pwdgen_update_crc(pwd, pwd->pwd, pwd->length);
+  pwdgen_update_crc(pwd, pwd->cur->content, plen);
 
   if (strcmp(b,target) == 0) { return PWD_SUCCESS; }	/* found password */
 

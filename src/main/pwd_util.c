@@ -11,12 +11,60 @@
 
 #include <dicop.h>
 
+#ifndef WIN32
+  #include <err.h>
+#endif
+
 /* ********************************************************************** */
 
-off_t pwdgen_file_size(FILE *fin)
+/** Calculates and inserts the current time into the given format string
+    and prints it. The given format string MUST contain "%s" and no
+    other format specifiers.\n\n
+
+    Example: pwdgen_print_time("%s\n");
+    */
+
+void pwdgen_print_time (const char* format)
   {
-  fseeko(fin,0,SEEK_END); 
-  return ftello(fin);
+  time_t now;
+  struct tm* tm_now;
+  char time_str[128];
+  int rc;
+
+  now = time(NULL);
+  tm_now = localtime(&now);
+  rc = strftime(time_str, sizeof(time_str), "%c", tm_now);
+  if (rc == 0)
+    {
+    /* error in strftime() */
+    time_str[0] = 0;
+    }
+  printf (format, time_str);
+  fflush(NULL);	/* make the output appear immidiately */
+  }
+
+/* ********************************************************************** */
+
+off_t pwdgen_file_size(const FILE *fin)
+  {
+  int rc;
+  off_t fs;
+
+  /* set fileofs to 0 and clear errno */
+  rewind(fin);
+  rc = fseeko(fin,0,SEEK_END);
+  if (rc == -1)
+    {
+    /* some error happened */
+#ifndef WIN32
+    err (1,NULL);
+#else
+    return -1;
+#endif
+    }
+  fs = ftello(fin);
+  rewind(fin);
+  return fs;
   }
 
 /* ********************************************************************** */

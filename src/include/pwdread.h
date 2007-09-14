@@ -50,7 +50,7 @@
 
 struct ssCharset
   {
-  unsigned int id;			/**< charset id */
+  int id;				/**< charset id */
   unsigned int type;			/**< SET_(SIMPLE|GROUPED|DICTIONARY|EXTRACT) */
   /* only for simple ones */
   unsigned int chars[MAXCHARS]; 	/**< the 'characters' */
@@ -59,9 +59,9 @@ struct ssCharset
   /** GROUPED:   how many pos/set pairs do we have\n
       DICTIONARY: how many append/prepend pairs do we have */
   unsigned int paircnt;			
-  /** GROUPED: position this pair applies to\n
-      DICTIONARY: position where to put: 0 - append, 1 - prepent */
-  unsigned int pos[MAXPAIRS];
+  /** GROUPED: position this pair applies to, 1 => front, -1 => back\n
+      DICTIONARY: position where to put: 0 - append, 1 - prepend */
+  int pos[MAXPAIRS];
   /** DICTIONARY: startlen set to append/prepend */
   unsigned int startlen[MAXPAIRS];
   /** DICTIONARY: endlen of set to append/prepend */
@@ -79,6 +79,6 @@ struct ssCharset
 /* reading routines */
 struct ssCharset* pwdgen_read_charsets ( void );
 unsigned int pwdgen_readset ( const char* set, struct ssPWD* sPWD );
-void pwdgen_set_cfg_keys ( struct ssPWD* sPWD, struct ssKey* cfg );
+void pwdgen_set_cfg_keys ( struct ssPWD* sPWD, const struct ssKey* cfg );
 
 #endif

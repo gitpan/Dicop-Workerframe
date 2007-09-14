@@ -29,7 +29,7 @@ chdir 'test-worker/';
 my (@args);
 while (<DATA>)
   {
-  chomp();
+  s/[\n\r]//g;		# remove newlines
   next if /^#/; next if length($_) == 0;
 
   my @args = split /,/, $_;
@@ -40,7 +40,7 @@ while (<DATA>)
   my $rc = `./pwdtest $a[0] $a[1] $a[2] $a[3] $a[4]`;
 
 #   print "result: $rc\n"; sleep(5);
-  $rc =~ s/\nAt '(.+)'/my $v = shift @args; $v = 'no more output' if !defined $v; print "# $1 $v\n"; is($1,$v, '$v'); '';/eg;
+  $rc =~ s/\nAt '(.+)'/my $v = shift @args; $v = 'no more output' if !defined $v; print "# $1 $v\n"; is($1,$v, "expect: $v"); '';/eg;
   
   $rc =~ /Last tested password in hex was '(.*)'/;
   is ("Last pwd '$1'","Last pwd '$a[5]'", 'last pwd');

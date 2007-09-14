@@ -29,10 +29,10 @@ extern unsigned int MAXSETS;
 struct ssCharset *
 pwdgen_read_charsets (void)
 {
-  int linenr, i,k, convert, mul, stage, s;
+  int linenr, convert, mul, stage, s, idx;
   unsigned int pos, set;
   FILE *file;
-  unsigned int j,  count;
+  unsigned int k, j, i, count;
   unsigned char line[BUFSIZE + 16];	/* input lines up to BUFSIZE characters */
   unsigned char buffer[16];	/* temp. buffer for conversations */
   unsigned char temp[BUFSIZE];	/* temp. buffer for conversations */
@@ -72,7 +72,7 @@ pwdgen_read_charsets (void)
       line[0] = 0;
       while (count < BUFSIZE && !feof (file))
 	{
-	  line[count] = fgetc (file);
+	  line[count] = (unsigned char)fgetc (file);
 	  /* handles only 0xd0xa or 0xa files, not 0xd (like MAC) */
 	  if (line[count] == 0x0d || line[count] == 0x0a)
 	    {
@@ -103,7 +103,7 @@ pwdgen_read_charsets (void)
       /* XXX TODO could eliminate this check */
       if (count != 0)
 	{
-	  if (strncmp ((char *)line,(const char *) "count=", 6) == 0)
+	  if (strncmp ((char *)line, "count=", 6) == 0)
 	    {
 	      /* read out the count to alloc memory */
 	      /* 9999 diff. charsets should be enough for everyone... */
@@ -210,11 +210,13 @@ pwdgen_read_charsets (void)
 		  fclose (file);
 		  return NULL;
 		}
+	      /* test that the charset number in convert is one of the existing ones */
 	      i = 0;
 	      while (i < MAXSETS)
 		{
-		  /* only for read in ones, since unread ones have still id==0 */
-		  if (charset[i].id == convert)
+		  /* only for read in ones, since unread ones have still id==0
+		     convert is >0 here, this is tested above */
+		  if (charset[i].id == (unsigned int)convert)
 		    {
 		      printf
 			("Error: Charset ID %i defined twice in line %i\n",
@@ -256,36 +258,35 @@ pwdgen_read_charsets (void)
 		    }
 		  if (charset[set].type == SET_SIMPLE)
 		    {
-		      /* convert hex to dec */
-		      i--;
-		      convert = 0;
-		      mul = 1;
-		      while (i >= 0)
+		    /* convert hex to dec */
+		    idx = i - 1;
+		    convert = 0;
+		    mul = 1;
+		    while (idx >= 0)
+		      {
+		      /* assumes some ASCIIism */
+		      if (buffer[idx] >= '0' && buffer[idx] <= '9')
 			{
-			  /* assumes some ASCIIism */
-			  if (buffer[i] >= '0' && buffer[i] <= '9')
-			    {
-			      convert += mul * (buffer[i] - '0');
-			    }
-			  else
-			    {
-			      if (buffer[i] > 'f')
-				{
-				  buffer[i] -= 'A';
-				}	/* to lower */
-			      if (buffer[i] < 'a' || buffer[i] > 'f')
-				{
-				  printf
-				    ("Error: Illegal hex character %c in line %i\n",
-				     buffer[i], linenr);
-				  fclose (file);
-				  return NULL;
-				}
-			      convert += mul * (buffer[i] - 'a' + 10);
-			    }
-			  mul *= 16;
-			  i--;
-			}	/* for each nibble */
+			convert += mul * (buffer[idx] - '0');
+			}
+		      else
+			{
+			if (buffer[idx] > 'f')
+			  {
+			  buffer[idx] -= 'A';
+			  }	/* to lower */
+			if (buffer[idx] < 'a' || buffer[idx] > 'f')
+			  {
+			  printf ("Error: Illegal hex character %c in line %i\n",
+			     buffer[idx], linenr);
+			  fclose (file);
+			  return NULL;
+			  }
+			convert += mul * (buffer[idx] - 'a' + 10);
+			}
+			mul *= 16;
+			idx--;
+		      }	/* for each nibble */
 		      /* got one, so put it in and add one more to len */
 		      charset[set].chars[charset[set].length++] = convert;
 		    }
@@ -550,7 +551,7 @@ pwdgen_readset (const char *set, struct ssPWD *sPWD)
   unsigned long rc;
   struct ssKey *cfg, *key;
   char valid[256] =
-    "password_prefix,dictionary_file,dictionary_mutations,dictionary_stages,charset_id";
+    "password_prefix,prefix,prefix_encoding,dictionary_file,dictionary_mutations,dictionary_stages,charset_id,input_encoding,output_encoding";
 
   /* read the config file, if we find it */
   cfg = pwdcfg_read (set);
@@ -570,7 +571,7 @@ pwdgen_readset (const char *set, struct ssPWD *sPWD)
   key = pwdcfg_find_key (cfg, "charset_id", CFG_NOFAIL);
   if (NULL != key)
     {
-      sPWD->id = atoi ((const char *)key->value);
+      sPWD->id = atoi (key->value);
     }
 
   /* set all the others */
@@ -581,49 +582,120 @@ pwdgen_readset (const char *set, struct ssPWD *sPWD)
   return 0;
   }
 
-/* INTERNAL: from chunk or job/charset description file set certain keys */
+/** <b>INTERNAL</b>
+    Interpret the following set of keys from a given chunk or job/charset
+    description file:\n
+    - prefix
+    - prefix_encoding
+    - password_prefix (legacy support)
+    - dictionary_file
+    - dictionary_file_offset
+    - dictionary_mutations
+    - dictionary_stages
+    - input_encoding
+    - output_encoding
+    */
 
 void
-pwdgen_set_cfg_keys (struct ssPWD *sPWD, struct ssKey *cfg)
-{
+pwdgen_set_cfg_keys (struct ssPWD *sPWD, const struct ssKey *cfg)
+  {
   struct ssKey *key;
+  struct sPwdString* prefix;
 
-  key = pwdcfg_find_key (cfg, "password_prefix", CFG_NOFAIL);
+  key = pwdcfg_find_key (cfg, "password_prefix", CFG_OPTIONAL);
   if (NULL != key)
     {
-      h2a (key->value);
-      strncpy (sPWD->prefix, key->value, 250);
-      sPWD->prefix[250] = 0;	/* zero term. in case */
-      sPWD->prefix_length = strlen (sPWD->prefix);	/* cache string length */
+    /* legacy support for prefix in hex */
+    h2a(key->value);
+    /* prefix is read-only */
+    prefix = (struct sPwdString*)sPWD->prefix;
+    strncpy (prefix->content, key->value, 250);
+    prefix->bytes = strlen(prefix->content);
+    prefix->characters = -1;
+    prefix->encoding = ISO_8859_1;
+    printf ("\n Warning: Found legacy key 'password_prefix', assuming hex and ISO-8859-1.\n");
+    fflush(NULL);
+    }
+  key = pwdcfg_find_key (cfg, "prefix", CFG_OPTIONAL);
+  if (NULL != key)
+    {
+    if (sPWD->prefix->bytes != 0)
+      {
+      printf (" Warning: Encountered both 'password_prefix' and 'prefix' in config file.\n");
+      printf ("          'prefix' will take precedence and overwrite 'password_prefix'!\n");
+      }
+    /* prefix is read-only */
+    prefix = (struct sPwdString*)sPWD->prefix;
+    strncpy (prefix->content, key->value, 250);
+    prefix->content[250] = 0;			/* zero term. in case */
+    prefix->bytes = strlen(prefix->content);
+    prefix->characters = -1;
+    prefix->encoding = ISO_8859_1;
+    key = pwdcfg_find_key (cfg, "prefix_encoding", CFG_OPTIONAL);
+    if (NULL != key)
+      {
+      prefix->encoding = pwdgen_encoding_from_name(key->value);
+      }
+    else
+      {
+      printf (" Warning: 'prefix_encoding' not set, assuming ISO-8859-1.\n");
+      }
     }
 
-  key = pwdcfg_find_key (cfg, "dictionary_file",(unsigned long) CFG_NOFAIL);
+  key = pwdcfg_find_key (cfg, "dictionary_file", CFG_OPTIONAL);
   if (NULL != key)
     {
-      strncpy (sPWD->dictionary, key->value, 250);
-      sPWD->dictionary[250] = 0;
+    strncpy (sPWD->dictionary, key->value, 250);
+    sPWD->dictionary[250] = 0;
+    }
+
+  /* allow dictionary as alias for dictionary_file */
+  key = pwdcfg_find_key (cfg, "dictionary", CFG_OPTIONAL);
+  if (NULL != key)
+    {
+    strncpy (sPWD->dictionary, key->value, 250);
+    sPWD->dictionary[250] = 0;
     }
 
   /* this one will only be used from a chunk description file, not from
      a job description file, but we handle both branches here */
-  key = pwdcfg_find_key (cfg, "dictionary_file_offset", CFG_NOFAIL);
+  key = pwdcfg_find_key (cfg, "dictionary_file_offset", CFG_OPTIONAL);
   if (NULL != key)
     {
-      sPWD->dict_file_ofs = atol (key->value);
+    sPWD->dict_file_ofs = atol (key->value);
     }
 
   /* don't use as_int() because it warns needlessly */
-  key = pwdcfg_find_key (cfg, "dictionary_mutations", CFG_NOFAIL);
+  key = pwdcfg_find_key (cfg, "dictionary_mutations", CFG_OPTIONAL);
   if (NULL != key)
     {
-      sPWD->todo_mutations = atoi (key->value);
+    sPWD->todo_mutations = atoi (key->value);
     }
 
-  key = pwdcfg_find_key (cfg,"dictionary_stages", CFG_NOFAIL);
+  key = pwdcfg_find_key (cfg,"dictionary_stages", CFG_OPTIONAL);
   if (NULL != key)
     {
-      sPWD->todo_stages = atoi (key->value);
+    sPWD->todo_stages = atoi (key->value);
     }
 
-  return;
-}
+  key = pwdcfg_find_key (cfg,"input_encoding", CFG_OPTIONAL);
+  if (NULL != key)
+    {
+    sPWD->generator_encoding = pwdgen_encoding_from_name(key->value);
+    if (sPWD->generator_encoding == INVALID_ENCODING)
+      {
+      printf (" Error: input_encoding '%s' is not a valid encoding.\n",
+        key->value);
+      pwdgen_error(sPWD, -1);
+      return;
+      }
+    }
+
+  key = pwdcfg_find_key (cfg,"output_encoding", CFG_OPTIONAL);
+  if (NULL != key)
+    {
+    /* XXX TODO: handle more than one ("UTF-8, ISO-8859-1") and also errors */
+    pwdgen_add_encoding(sPWD, pwdgen_encoding_from_name(key->value));
+    }
+  }
+

@@ -18,7 +18,7 @@ chdir 'test-worker/';
 my (@args);
 while (<DATA>)
   {
-  chomp();
+  s/[\n\r]//g;		# remove newlines
   next if /^#/;
   next if length($_) == 0;
   my @a = split /,/, $_;
@@ -67,7 +67,7 @@ sub _read_file
   open $FILE, $file or die("Cannot read file '$file': $!");
   while (my $line = <$FILE>)
     {
-    chomp($line);
+    $line =~ s/[\n\r]//g;		# remove newlines
     $hex++, next if $line =~ /^=hex/;
     $line = a2h($line) if $hex == 0;
     push @pwds, $line;

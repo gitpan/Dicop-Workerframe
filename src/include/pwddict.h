@@ -14,19 +14,20 @@
 #include <string.h>
 #include <time.h>
 
-#define DICT_LOWER                      1	/* lowercase */
-#define DICT_UPPER                      2	/* UPPERCASE */
-#define DICT_LOWER_FIRST                4	/* lOWERFIRST */
-#define DICT_UPPER_FIRST                8	/* Upperfirst */
-#define DICT_LOWER_LAST                 16	/* LOWERLASt */
-#define DICT_UPPER_LAST                 32	/* upperlasT */
-#define DICT_UPPER_ODD                  64	/* uPpErOdD */
-#define DICT_UPPER_EVEN                 128	/* UpPeReVEn */
-#define DICT_UPPER_VOWELS               256	/* UppErvOwEls */
-#define DICT_UPPER_CONSONANTS           512	/* uPPeRCoNSoNaNTS */
+#define DICT_LOWER                         1	/**< lowercase */
+#define DICT_UPPER                         2	/**< UPPERCASE */
+#define DICT_LOWER_FIRST                   4	/**< lOWERFIRST */
+#define DICT_UPPER_FIRST                   8	/**< Upperfirst */
+#define DICT_LOWER_LAST                   16	/**< LOWERLASt */
+#define DICT_UPPER_LAST                   32	/**< upperlasT */
+#define DICT_UPPER_ODD                    64	/**< uPpErOdD */
+#define DICT_UPPER_EVEN                  128	/**< UpPeReVEn */
+#define DICT_UPPER_VOWELS                256	/**< UppErvOwEls */
+#define DICT_UPPER_CONSONANTS            512	/**< uPPeRCoNSoNaNTS */
+#define DICT_ORIGINAL			1024	/**< The word as it was written in the dictionary */
 
-#define DICT_FORWARD		        1	/* forward */
-#define DICT_REVERSE			2	/* desrever */
+#define DICT_FORWARD		        1	/**< forward */
+#define DICT_REVERSE			2	/**< desrever (reversed)*/
 
 /** advance password by one, return 0 for okay, and 1 for past-end-pwd */
 unsigned int pwddict_next ( struct ssPWD* sPWD );

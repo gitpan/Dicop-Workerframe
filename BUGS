@@ -17,7 +17,7 @@ server (resulting in a speed penalty for the client).
 Also clock jumping ahead so far that the timeout is triggered is handled as
 normal timeout, once again resulting in speed penalty.
 
-Unlcear whether this needs fixing at all.
+Unclear whether this needs fixing at all.
 
 The clock going backwards is correctly compensated for, though. 
 
@@ -30,7 +30,7 @@ this password. In most cases, this is not a problem, however.
 =item *
 
 Likewise, the framework does not allow the code to transport any info back
-to the client (and hence to the server) except the passwort itself
+to the client (and hence to the server) except the password itself
 and potential error messages.
 
 =back

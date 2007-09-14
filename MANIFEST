@@ -1,31 +1,96 @@
 BUGS
-build/Doxyfile			# configuration for English Doxygen generated doc
-build/Doxyfile-de		# configuration for German Doxygen generated doc
-build/gen_patch_h.pl		# generate src/include/patch.h from patch.tpl
+build/CaseFolding.txt		Official Unicode case folding (lower/upper case) information
+build/conv.tpl
+build/Doxyfile			configuration for English Doxygen generated doc
+build/Doxyfile-de		configuration for German Doxygen generated doc
+build/encodings.tpl
+build/gen_cp.pl			generate tables in src/include/encodings/ for one encoding
+build/gen_patch_h.pl		generate src/include/patch.h from patch.tpl
+build/gen_tables.pl		generate all files in src/include/encodings/
+build/gen_utf8.pl		generate src/include/encodings/utf8.h
+build/Makefile.pm
+build/mappings.tpl
 build/patch.tpl
 build/README
-CHANGES
-CHANGES-2.14
-dicop.asc
+CHANGES				current change log
+CHANGES-2.14			older change log
+dicop.asc			our public GnuPG key
 doc/API.pod
 doc/Config.pod
 doc/Dict.pod
 doc/Extract.pod
+doc/I18N.pod
 doc/Parallel.pod
 lib/README
 LICENSE
 Makefile.PL
 MANIFEST
 MANIFEST.SKIP
-META.yml			Module meta-data (added by MakeMaker)
+META.yml			Module meta-data
 README
-SIGNATURE
-src/extract/extract.c		extract worker
+SIGNATURE			signature file of this package
+src/extract/extract.c		worker to extract strings from files
 src/include/dicop.h
 src/include/dicop_unused.h
-src/include/hexdump.h
+src/include/encoding/cp1250.h
+src/include/encoding/cp1251.h
+src/include/encoding/cp1252.h
+src/include/encoding/cp1253.h
+src/include/encoding/cp1254.h
+src/include/encoding/cp1255.h
+src/include/encoding/cp1256.h
+src/include/encoding/cp1257.h
+src/include/encoding/cp1258.h
+src/include/encoding/cp437.h
+src/include/encoding/cp737.h
+src/include/encoding/cp775.h
+src/include/encoding/cp850.h
+src/include/encoding/cp852.h
+src/include/encoding/cp855.h
+src/include/encoding/cp857.h
+src/include/encoding/cp860.h
+src/include/encoding/cp861.h
+src/include/encoding/cp862.h
+src/include/encoding/cp865.h
+src/include/encoding/cp866.h
+src/include/encoding/cp869.h
+src/include/encoding/cp874.h
+src/include/encoding/encodings.h
+src/include/encoding/iso_8859_1.h
+src/include/encoding/iso_8859_10.h
+src/include/encoding/iso_8859_11.h
+src/include/encoding/iso_8859_13.h
+src/include/encoding/iso_8859_14.h
+src/include/encoding/iso_8859_15.h
+src/include/encoding/iso_8859_16.h
+src/include/encoding/iso_8859_2.h
+src/include/encoding/iso_8859_3.h
+src/include/encoding/iso_8859_4.h
+src/include/encoding/iso_8859_5.h
+src/include/encoding/iso_8859_6.h
+src/include/encoding/iso_8859_7.h
+src/include/encoding/iso_8859_8.h
+src/include/encoding/iso_8859_9.h
+src/include/encoding/koi8_r.h
+src/include/encoding/koi8_u.h
+src/include/encoding/maccentraleurroman.h
+src/include/encoding/maccroatian.h
+src/include/encoding/maccyrillic.h
+src/include/encoding/macgreek.h
+src/include/encoding/macicelandic.h
+src/include/encoding/macroman.h
+src/include/encoding/macromanian.h
+src/include/encoding/macrumanian.h
+src/include/encoding/macsami.h
+src/include/encoding/macturkish.h
+src/include/encoding/macukrainian.h
+src/include/encoding/mappings.h
+src/include/encoding/utf8.h		UTF-8 support (case folding and conversions)
+src/include/hexdump.h		for hexdump.c
 src/include/patch.h		build and revision number
+src/include/pwd_conv.h		for pwd_conv.c
 src/include/pwd_img.h		for pwd_img.c
+src/include/pwd_ltc.h		handy macros for libtomcrypt support
 src/include/pwd_par.h		for pwd_par.c
 src/include/pwd_util.h		for pwd_util.c
 src/include/pwdcfg.h
@@ -34,8 +99,9 @@ src/include/pwdgen.h
 src/include/pwdread.h
 src/include/pwdsort.h
 src/main/dicop.c
-src/main/hexdump.c
+src/main/hexdump.c		generate hexdumps of memory areas
 src/main/main.c			workerframe
+src/main/pwd_conv.c		character set conversions
 src/main/pwd_img.c		password extractor (from image files)
 src/main/pwd_par.c		password block gathering
 src/main/pwd_util.c		utility functions for file I/O, error handling etc
@@ -46,9 +112,16 @@ src/main/pwdread.c		password generator init: read charsets.def file
 src/main/pwdsort.c		sort routines
 src/pwdtest/pwdtest.c		test worker for test suite
 src/test/test.c			empty test worker
+src/test_cnv/test_cnv.c
+src/test_enc/test_enc.c		test worker for encodings
 src/test_par/test_par.c		empty test parallel worker
+src/test_sbe/test_sbe.c		test worker for single byte encodings
+t/10_enc.t			test encoding and charset conversion
+t/11_sbe.t			test single-byte encodings
+t/12_1pwd.t
 t/bad.t				check bad input handling of generator
 t/charsets.def
+t/conv.t
 t/dict.t			test framework with dictionary sets
 t/dictlist.t			test framework with dictionaries and appended
 t/dictlist2.t			test framework with dictionaries and appended
@@ -140,6 +213,7 @@ t/target/chunk_2_1.txt		dictionary with file offset in chunk description file
 t/target/dictionaries/testdict.txt	normal dictionary
 t/target/dictionaries/testdict1.txt	dictionary with some number-word
 t/target/dictionaries/testdict2.txt	larger dictionary
+t/target/dictionaries/unicode.txt
 t/target/extract.txt
 t/target/image000.img		test images for extracting strings
 t/target/image001.img
@@ -161,7 +235,9 @@ t/target/ps1023.set		forward, reverse, etc
 t/target/ps2.set		forward, reverse, etc
 t/target/ps3.set		forward, reverse, upper, lower, prefix + dict
 t/target/ps42.set		forward, reverse, prefix + dictionary
+t/target/utf8.cfg
 t/test-worker/README
+t/utf8.t			test UTF-8 string extraction
 t/worker.inc			actual tests for worker.t
 t/worker.t			test framework with pwdtest
 TODO

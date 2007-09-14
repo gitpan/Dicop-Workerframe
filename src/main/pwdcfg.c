@@ -231,7 +231,7 @@ struct ssKey* pwdcfg_find_key (const struct ssKey* keys, const char* key, const 
 #ifdef DEBUG
     printf (" at key '%s' with len %i\n", current->key, current->len);
 #endif 
-    if ((len == current->len) && (0 == strncmp ((const char *)current->key,(const char *) key, len)))
+    if ((len == current->len) && (0 == strncmp (current->key, key, len)))
       {
       /* found it */
       return current;
@@ -365,24 +365,24 @@ unsigned long pwdcfg_valid_keys (
   }
 
 /* ************************************************************************ */
-/* Find a key, and return its value as int. Returns 0 if it doesn't exist.
-   You should use pwdcfg_find_key() or pwdcfg_keys_exist() to check
-   beforehand that key really exists.
+/** Find a key, and return its value as int. Returns 0 if it doesn't exist.
+    You should use pwdcfg_find_key() or pwdcfg_keys_exist() to check
+    beforehand that the key really exists.\n\n
 
-   return codes: int value
+    return code: int value
 */
 
-int pwdcfg_as_int (const struct ssKey* cfg, const char* keyname, const unsigned long fail )
+int pwdcfg_as_int (const struct ssKey* cfg, const char* keyname, const unsigned long fail)
   {
   struct ssKey* key;
 
   key = pwdcfg_find_key (cfg, keyname, fail);
   if (NULL == key)
     {
-    printf ("Warning: Key '%s' does not exist in config - defaulting to 0.\n", keyname);
+    printf (" Warning: Key '%s' does not exist in config - defaulting to 0.\n", keyname);
     return 0;
     }
-  /* XXX TODO: should check that value is a number */
-  return atoi((const char *)key->value);
+  /* XXX TODO: should check that value is really a number */
+  return atoi (key->value);
   }
 

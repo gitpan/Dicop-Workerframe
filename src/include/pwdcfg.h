@@ -16,8 +16,10 @@
 
 /** when searching for a key, return 0 if it doesn't exist */
 #define CFG_NOFAIL 0
+#define CFG_OPTIONAL 0
 /** when searching for a key, die/exit if it doesn't exist */
 #define CFG_FAIL 1
+#define CFG_MANDATORY 1
 
 /** @brief Defines one key=value pair in a Dicop config file.
 

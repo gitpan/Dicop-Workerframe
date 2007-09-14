@@ -17,11 +17,13 @@
 /** When extracting characters, simple skip over invalid characters */
 #define EXTRACT_SKIP_INVALIDS   0x01
 /** Extract characters at odd and even positions, too. */
-#define EXTRACT_ODD_EVEN        0x02
+#define EXTRACT_EVEN_ODD	0x02
 /** Enable debug output for extraction. */
-#define EXTRACT_DEBUG           0x04
+#define EXTRACT_DEBUG		0x04
 /** Enable tracing output for extraction. */
-#define EXTRACT_TRACE           0x08
+#define EXTRACT_TRACE		0x08
+/** Extract only valid UTF-8 */
+#define EXTRACT_UTF8		0x10
 
 /* ************************************************************************* */
 /* prototypes */
@@ -38,14 +40,23 @@ unsigned long pwdgen_img_extract (
 	struct ssPWD* pwd
   );
 
+/* extract valid UTF8 strings of N bytes */
+unsigned long pwdgen_img_extract_utf8 (
+	const unsigned char* buffer,
+	unsigned char* pwd_list,
+	const unsigned long bufsize,
+	const unsigned long len,
+	const unsigned long options,
+	struct ssPWD* pwd
+  );
+
 /* read image blockwise and extract strings of len N */
 unsigned long pwdgen_img_read( 
 	struct ssPWD* pwd,
 	const unsigned int len,
 	const char *filename, 
 	unsigned int* valid, 
-	const unsigned long options,
-	const unsigned long image_type
+	const unsigned long options
   );
 
 /* take the list of pwd's, and sort it and then weed out doubles */

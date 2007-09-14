@@ -10,7 +10,7 @@ You can use perldoc to read this document: C<perldoc README>.
 After an initial overview, this document details the functions that are called
 by the workerframe main routine and need to be filled in with your code.
 
-It also describes auxilary functions that can be called by your code to
+It also describes auxiliary functions that can be called by your code to
 make your development easier.
 
 =head2 Overview
@@ -24,12 +24,12 @@ So you should install the DiCoP server and client first. See
 L<http://www.bsi.bund.de/> and search for "dicop", then download and install
 the server and at least one client.
 
-This framework provides all the neccessary routines to get an "empty" worker
+This framework provides all the necessary routines to get an "empty" worker
 done, e.g. something that just walks a bit of a password/key space and
 applies an "empty check" (e.g. none at all) to each password/key.
 
 Workers are usually called by the DiCoP client and take their arguments from
-the commandline and/or additional files. They print their results to
+the command line and/or additional files. They print their results to
 STDOUT, which is then collected by the client.
 
 All the initialization is done by the framework. The framework contains a
@@ -83,7 +83,7 @@ you need.
 =item GROUPED
 
 A grouped charset consist of a default charset, and a list of positions and
-corrosponding simple charsets. At each of the positions either the default
+corresponding simple charsets. At each of the positions either the default
 charset, or the simple one listed for this position is taken. The positions
 can count from left (positive) or right (backwards, negative). Thus it is
 possible to describe passwords like:
@@ -104,7 +104,7 @@ all upper case, first upper case etc).
 
 =item EXTRACT
 
-The passwords are extracted on-the-fly from an image file (either a diskimage,
+The passwords are extracted on-the-fly from an image file (either a 0,
 or an ordinary file). Doubles are discarded and the remaining passwords are
 then feed to the C<dofunction()>.
 
@@ -122,15 +122,15 @@ C<charsets.def>) as well as job character description files (which contain
 data that changes from job to job, like the password prefix).
 
 In addition, a short description file of all the options can be send from the
-server to the client. Instead of passing the options on the commandline,
+server to the client. Instead of passing the options on the command line,
 only the name of the options file will be passed. The workerframe will read
-all it's arguments and options from there. This file is discared afterwards.
+all it's arguments and options from there. This file is discarded afterwards.
 
 The idea behind this to keep the system simple, the communication
-human-readable (thus easily debuggable) and avoid dependecies on external
+human-readable (thus easily debugable) and avoid dependencies on external
 libraries and third-party applications as much as possible. The workers
 should (and do) be able to run as simple programs on a text-console, with no
-dependecies except for some standard c library. This makes it easier to deploy
+dependencies except for some standard c library. This makes it easier to deploy
 them on systems with quite different operating systems or hardware.
 
 =head2 Worker description
@@ -145,7 +145,7 @@ The DiCoP system consists mainly of 3 parts:
 
 =item server
 
-This is (usually) the dicopd daemon, running at a dedicated machine.
+This is (usually) the C<dicopd> daemon, running at a dedicated machine.
 
 =item client(s)
 
@@ -155,12 +155,12 @@ actually nothing that prevents you from running a client on it.
 
 =item worker
 
-Each client machine als runs a worker (at a time). There exist multiple worker
+Each client machine also runs a worker (at a time). There exist multiple worker
 programs, each for a different problem. The client will select the proper
 worker and run only one at a time. For SMP machines, it is possible to start
 two or more clients and have them run different workers at the same time, but
 Linux, f.i. is also able to distribute one running worker across two or
-more CPUs - albait this is not as effective as simple running two clients at
+more CPUs - albeit this is not as effective as simple running two clients at
 the same time and bind each of them to one CPU.
 
 =back
@@ -181,7 +181,7 @@ So the server does all the management and distribution work.
 The client does the talking to the server and just hands the chunk to the
 worker. The client is also responsible for updating the workers and other
 files (including the client itself) when the server tells him that this is
-neccessary.
+necessary.
 
 The beauty of this setup is that a worker does not need to care about anything
 that is related to key distribution, management, network access etc. The only
@@ -205,41 +205,57 @@ The only things one needs to develop are:
 
 =item printinfo()
 
-A simple routine printing out copyright and version info.
+A simple routine printing out copyright and version info. Example:
+
+
+	void printinfo( void )
+	  {
+	  printf ("Foo worker (c) ...\n");
+	  PRINT_INFO;
+	  }
+
+The C<PRINT_INFO> macro is very useful to print out the date and source
+for use for compilation and should be used.
 
 =item initfunction()
 
-A routine the sets the worker up. Sometimes it is usefull to allocate memory,
+A routine the sets the worker up. Sometimes it is useful to allocate memory,
 or calculate tables, and this is done here. Usually this is just an empty
-routine that returns 0 to signal C<all okay>.
+routine that returns C<PWD_INIT_OK> to signal that everything went fine.
 
 =item dofunction()
 
-This function will be called for each key to check. Returns C<0> for when the
-given key is the solution, and C<2> for when the key is not. This is the main
-part and usually the only part that differs from worker to worker (except the
-version and copyright, of course).
+This function will be called for each key to check. Returns C<PWD_SUCCESS> for
+when the given key is the solution, and C<PWD_FAIL> for when the key is not.
+This is the main part and usually the only part that differs from worker to
+worker (except the version and copyright, of course).
 
 This function has three possible return values:
 
 	PWD_FAIL		the current password IS NOT the right one
 	PWD_SUCCESS		the current password IS the right one
-	PWD_ERROR		some critical error occured, abort
+	PWD_ERROR		some critical error occurred, abort
 
 =item stopfunction()
 
 Called at the very end after the password generator finished and after
 L<endfunction>.
-Usually empty since not neccessary in most cases.
+Usually empty since not necessary in most cases.
 
 =item endfunction()
 
 Called after at the very end when the worker has done all keys.
-Usually empty since not neccessary in most cases.
+Usually empty since not necessary in most cases.
 
 =back
 
-Here is a short overview in pseudo-code:
+If your code does not need C<< stopfunction(); >> and C<< endfunction; >>,
+then replace C<< #inline "dicop.h" >> with C<< #include "dicop_unused.h" >>
+and you can omit these two functions entirely.
+
+=head2 Code flow
+
+Here is a short overview of the frameworks code flow in pseudo-code:
 
 	... start worker ...
 	printinfo();
@@ -251,7 +267,7 @@ Here is a short overview in pseudo-code:
 	  dofunction();
 	  }
 	endfunction();
-	stop_password_generator();
+	... stop password generator  ...
 	stopfunction();
 	... end worker ...
 	
@@ -267,14 +283,14 @@ There are a couple of functions you can use to make your work easier:
 
 	pwdgen_add(pwd,123);
 
-Add's the given number to the counter of already done passwords. The counter
+Adds the given number to the counter of already done passwords. The counter
 is automatically incremented for each call to C<dofunction()>. However, if
 your C<dofunction()> does check more than one password per call (by
 artificially inflating the password room), you may call C<pwdgen_add()> and
 adjust the counter (but only upwards).
 
 So if your C<dofunction()> checks two passwords (like the given one, and
-thenit's reversed form), you may call:
+its reversed form), you may call:
 
 	pwdgen_add(pwd,1);
 
@@ -359,20 +375,15 @@ their meanings and typical contents:
 
 =over 2
 
-=item unsigned char pwd[]
+=item struct sPwdString *cur
 
-Contains the current password. Do not rely on the zero termination of the password,
-especially in cases where the actual password could contain zero bytes itself. Use
-the field C<length> to find out how many bytes C<pwd> is long.
-
-=item long length
-
-Stores how many bytes the C<pwd> field is long.
+A pointer to a read-only string struct containing the current password.
+Please see L<I18N.pod> for more details.
 
 =item long overflow
 
 Contains the number of characters that changed from the last password to the current
-one. If the passwords are sequentiell (like in SIMPLE charsets), it will contain
+one. If the passwords are sequential (like in SIMPLE charsets), it will contain
 mostly 1 (e.g. the real amount of overflowed characters). It might contain simple
 the length of the password to denote that all characters have changed, even when
 they did not.
@@ -400,16 +411,19 @@ Stores how many bytes the C<target> field is long.
 
 =head1 AUTHOR
 
-(C) Bundesamt fuer Sicherheit in der Informationstechnik 1998-2006.
+(C) Bundesamt fuer Sicherheit in der Informationstechnik 1998-2007.
 
-For licensing information please refer to the LICENSE file.
+The DiCoP Workerframe falls under the BSD license.
+
+See the file LICENSE or L<http://www.bsi.de/> for more information.
 
 =head2 Contact
 
 Address: BSI
 	 Referat 123
-	 Godesberger Alle 185-189
+	 Godesberger Allee 185-189
 	 53175 Bonn
 	 Germany
-email:	 dicop @ bsi.bund.de	(for public key see dicop.asc or website)
+email:	 dicop @ bsi.bund.de	(for public key see dicop.asc or web site)
 
+=cut

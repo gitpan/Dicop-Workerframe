@@ -32,10 +32,10 @@ FILE* output;
 unsigned long as_hex;
 struct ssKey* key;
 
-/** Prints version and copyright. */
 void printinfo(void)
   {
-  printf ("DiCoP extract worker v0.03  (c) Copyright by BSI 1998-2006\n\n");
+  printf ("DiCoP extract worker v0.03  (c) Copyright by BSI 1998-2007\n\n");
+  PRINT_INFO;
   }
 
 int initfunction(const struct ssPWD *pwd)
@@ -63,6 +63,7 @@ void stopfunction( void )
    chance to complete left-over pwds */
 int endfunction( const struct ssPWD *pwd )
   {
+  (void) pwd;
   return PWD_FAIL;
   }
 
@@ -75,10 +76,10 @@ int dofunction( const struct ssPWD *pwd )
   if (0 != as_hex)
     {
     /* make copy */
-    len = pwd->length;
+    len = pwd->cur->bytes;
     for (i = 0; i < len; i++)
       {
-      b[i] = pwd->pwd[i];
+      b[i] = pwd->cur->content[i];
       }
     a2h(b, len); 
     len *= 2;
@@ -88,14 +89,14 @@ int dofunction( const struct ssPWD *pwd )
   else
     {
     /* just write the password to the file */
-    fwrite (pwd->pwd, sizeof(char), pwd->length, output);
+    fwrite (pwd->cur->content, sizeof(char), pwd->cur->bytes, output);
     }
 
   /* write a line end */
   fputc ( '\n', output);
 #ifdef DEBUG
   fflush(output);
-  printf ("at '%s'\n", pwd->pwd);
+  printf ("at '%s'\n", pwd->cur->contents);
 #endif
 
   if (0 != ferror (output))

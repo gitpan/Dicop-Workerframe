@@ -2,7 +2,7 @@
  * @defgroup copyrighttext Copyright
  * @ingroup workerframe
  *
- * @author Copyright &copy; 1998-2006,
+ * @author Copyright &copy; 1998-2007,
  * <a title="Go to our homepage" href="http://www.bund.bsi.de">
  * Bundesamt f&uuml;r Sicherheit in der Informationstechnik</a> (BSI)\n\n
  * This file is part of Dicop-Workerframe. For licencing information see the
@@ -34,11 +34,14 @@
  * @section arch main():
  *
  * @verbatim
-   exit code: 3 - not enough or too much arguments or other failures
+   exit code:
+	      3 - not enough or too much arguments or other failures,
+ 	          or "--identfiy filename" failed
               2 - timeout, not all passwords checked
               1 - found a solution (and checked all passwords up to last, or in
                   case of timeout, up to timeout password)
-              0 - no solution found at all @endverbatim
+              0 - no solution found at all, or "--identify filename" passed @endverbatim
+		
 */
 
 #include <dicop.h>
@@ -46,7 +49,7 @@
 #include <pwddict.h>
 
 /* Number of predefined config file keys for default arguments. */ 
-#define CFG_KEYS 4
+#define CFG_KEYS 5
 
 /* ************************************************************************ */
 /** Take command line arguments and check them, then init the password
@@ -54,13 +57,15 @@
 
 struct ssPWD* init (int argc, char** argv)
   {
+  FILE* file;
   char firstkey[PWD_LEN * 2];
   char lastkey[PWD_LEN * 2]; 
   char targetkey[PWD_LEN * 2];
   struct ssKey* keys, *current;
   int i;
-  char pwdset [256];
-  char chunkkeys[CFG_KEYS][16] = { "start", "end", "target", "charset_id" };
+  char pwdset [PWD_LEN];
+  char charset_type [PWD_LEN];
+  char chunkkeys[CFG_KEYS][16] = { "start", "end", "target", "charset_id", "charset_type" };
   char* keysptr[CFG_KEYS];
   int timeout = 0;
 
@@ -68,6 +73,7 @@ struct ssPWD* init (int argc, char** argv)
   keysptr[1] = lastkey;
   keysptr[2] = targetkey;
   keysptr[3] = pwdset;
+  keysptr[4] = charset_type;
   keys = NULL;
   
   printf ("Checking commandline arguments...");
@@ -75,7 +81,35 @@ struct ssPWD* init (int argc, char** argv)
   if ((argc == 2) || (argc == 3))
     {
     printf (" count of %i looks good.\n", argc);
-    /* called like: name chunk_description_file [timeout] */
+    /* called like: ./worker --identify filename */
+    if ((argc == 3) && (strncmp("--identify",argv[1],10) == 0))
+      {
+      printf ("\nIdentifying file '%s':\n\n", argv[2]);
+      file = fopen (argv[2],"r");
+      if (NULL == file)
+	{
+	printf ("\n Error: Cannot open file '%s': %s\n", argv[2], strerror(errno));
+        exit(3);
+        }
+      pwdgen_file_close(file);
+      /* setup some fake keys in the password generator struct to make
+         initfunction() happy */
+      strcpy(sPWD.start,"00000000");
+      strcpy(sPWD.end,"00000000");
+      sPWD.startlen = 8;
+      sPWD.endlen = 8;
+      strncpy(sPWD.target,argv[2],255);
+      sPWD.target[255] = 0;
+      sPWD.targetlen = strlen(sPWD.target);
+      if ( 0 != initfunction(&sPWD) )
+        {
+        printf ("\nFile '%s' is not recognized by this worker.\n\n", argv[2]);
+        exit(3);
+        }
+      printf ("\nFile '%s' looks ok to me.\n\n",argv[2]);
+      exit(0);
+      }
+    /* called like: ./worker chunk_description_file [timeout] */
     if (argc == 3)
       {
       timeout = atoi(argv[2]);
@@ -91,6 +125,7 @@ struct ssPWD* init (int argc, char** argv)
     lastkey[0] = 0;
     targetkey[0] = 0;
     pwdset[0] = 0;
+    charset_type[0] = 0;
     /* set start/end/target from read-in info if applicable */
     for (i = 0; i < CFG_KEYS; i++)
       {
@@ -101,15 +136,36 @@ struct ssPWD* init (int argc, char** argv)
 	strncpy (keysptr[i], current->value, current->valuelen);
         }
       }
+    /* if a charset_type was given, but no charset_id, use a virtual charset_id */
+    if (0 == pwdset[0])
+      {
+      /* find out which virtual ID we need */
+      if (0 == memcmp("simple",charset_type, 5))
+        {
+        strcpy(pwdset, "-1");
+        }
+      else if (0 == memcmp("grouped",charset_type, 7))
+        {
+        strcpy(pwdset, "-2");
+        }
+      else if (0 == memcmp("dictionary",charset_type, 10))
+        {
+        strcpy(pwdset, "-3");
+        }
+      else if (0 == memcmp("extract",charset_type, 7))
+        {
+        strcpy(pwdset, "-4");
+        }
+      }
     }
  else
     {
     if ((argc < 5) || (argc > 6))
       {
       printf ("\n Error: Expected 1, 2, 4 or 5 arguments, but got %i.\n", argc-1);
-      printf ("\n Usage: %s chunk_description_file [timeout]\t\tor", argv[0]);
-      printf ("\n        %s firstkey lastkey targetkey pwdset [timeout]\n",
-        argv[0]);
+      printf ("\n Usage: %s chunk_description_file [timeout]", argv[0]);
+      printf ("\n        %s firstkey lastkey targetkey pwdset [timeout]",argv[0]);
+      printf ("\n        %s --identify filename\n",argv[0]);
       return NULL;
       }
     printf (" count of %i looks good.\n", argc);
@@ -121,8 +177,10 @@ struct ssPWD* init (int argc, char** argv)
       {
       timeout = atoi(argv[5]);
       }
+    /* we do not have a config file */
+    keys = NULL;
     }
-  printf ("\ndone.\nInitializing password generator...");
+  printf ("done.\nInitializing password generator...");
   return pwdgen_init(firstkey, lastkey, targetkey, pwdset, timeout, keys);
   }
 
@@ -134,12 +192,10 @@ struct ssPWD* init (int argc, char** argv)
 int gather_pwds (struct ssPWD *pwd)
   {
   int found = 0;
-  time_t t;
   
   if (pwd->type == SET_DICTIONARY)
     {
-    t = time(NULL);
-    printf ("%s Starting main dictionary loop\n", ctime(&t)); 
+    pwdgen_print_time ("%s Starting main dictionary loop\n");
     /* check until timeout, no more passwords or matching password found */
     do
       {
@@ -153,8 +209,7 @@ int gather_pwds (struct ssPWD *pwd)
   /* XXX TODO: pwdgen_extract() needs to do the right thing under parallel */ 
   if (pwd->type == SET_EXTRACT)
     {
-    t = time(NULL);
-    printf ("%s Starting main extraction loop.\n", ctime(&t)); 
+    pwdgen_print_time ("%s Starting main extraction loop.\n");
     fflush(NULL);
     /* extract pwds, weed out doubles, and call dofunction() on each pwd left */
     found = pwdgen_extract( pwd );
@@ -163,21 +218,19 @@ int gather_pwds (struct ssPWD *pwd)
   /**************************************************************************/
   if ((pwd->type == SET_GROUPED) || (pwd->type == SET_SIMPLE))
     {
-    t = time(NULL);
-    printf ("%s Checking first key...\n", ctime(&t));
+    pwdgen_print_time ("%s Checking first key...\n");
  
     found = pwdgen_par_push(pwd);
-
-    printf ("  (once: %i found: %i)", sPWD.once, found);
 
     if (sPWD.once != 0)
       {
       found = pwdgen_par_process(pwd) + sPWD.once;
       }
-    printf ("  (once: %i found: %i)", sPWD.once, found);
 
-    t = time(NULL);
-    printf (" done\n%s Starting main generator loop\n", ctime(&t)); 
+    if (found == 0)
+      {
+      pwdgen_print_time (" done\n%s Starting main generator loop\n"); 
+      }
     /* check until timeout, no more passwords or matching password found */
     while (found == 0)
       {
@@ -204,14 +257,12 @@ int gather_pwds (struct ssPWD *pwd)
 int cycle_pwds (struct ssPWD *pwd)
   {
   int found = 0;
-  time_t t;
   unsigned int last_pwd_len, equal, i;
   char last_pwd[PWD_LEN];
 
   if (pwd->type == SET_DICTIONARY)
     {
-    t = time(NULL);
-    printf ("%s Starting main dictionary loop\n", ctime(&t)); 
+    pwdgen_print_time ("%s Starting main dictionary loop\n"); 
     /* reset last pwd */
     last_pwd_len = 0; last_pwd[0] = 0;
     /* check until timeout, no more passwords or matching password found */
@@ -219,12 +270,14 @@ int cycle_pwds (struct ssPWD *pwd)
       {
       /* generate next pwd */
       found = pwddict_next( pwd );
+      PWDGEN_ERROR_CHECK;
       /* if current generated does not differ from last generated, skip it */
       if ((last_pwd_len == pwd->length))
         {
 #ifdef DEBUG
-        last_pwd[last_pwd_len] = 0;
+	printf ("\nLast len %i == cur len %i", last_pwd_len, pwd->length);
 	printf ("\n Last pwd: '%s', cur pwd '%s'\n", last_pwd, pwd->pwd);
+        last_pwd[last_pwd_len] = 0;
 #endif
         equal = 1;
         for (i = 0; i < pwd->length; i++)
@@ -239,12 +292,17 @@ int cycle_pwds (struct ssPWD *pwd)
         if (equal == 0)
 	  {
           found += dofunction( pwd );
+          PWDGEN_ERROR_CHECK;
 	  pwd->pwds_done++;
 	  }
         }
       else
         {
+#ifdef DEBUG
+	printf ("\nLast len %i != cur len %i", last_pwd_len, pwd->length);
+#endif
         found += dofunction( pwd );
+        PWDGEN_ERROR_CHECK;
 	pwd->pwds_done++;
 #ifdef DEBUG
         last_pwd[last_pwd_len] = 0;
@@ -263,28 +321,30 @@ int cycle_pwds (struct ssPWD *pwd)
   
   if (pwd->type == SET_EXTRACT)
     {
-    t = time(NULL);
-    printf ("%s Starting main extraction loop.\n", ctime(&t)); 
-    fflush(NULL);
+    pwdgen_print_time ("%s Starting main extraction loop.\n"); 
     /* extract pwds, weed out doubles, and call dofunction() on each pwd left */
     found = pwdgen_extract( pwd );
+    PWDGEN_ERROR_CHECK;
     }
 
   /**************************************************************************/
   if ((pwd->type == SET_GROUPED) || (pwd->type == SET_SIMPLE))
     {
-    t = time(NULL);
-    printf ("%s Checking first key...\n", ctime(&t));
- 
-    found = dofunction( pwd ) +	/* check first password ever */
-          sPWD.once;		/* only one password to check? */
+    pwdgen_print_time ("%s Checking first key...\n");
 
-    t = time(NULL);
-    printf (" done\n%s Starting main generator loop\n", ctime(&t)); 
+    found = dofunction( pwd ) +		/* check first password ever */
+          pwd->once;			/* only one password to check? */
+
+    PWDGEN_ERROR_CHECK;
+    if (found == 0)
+      {
+      pwdgen_print_time (" done\n%s Starting main generator loop\n"); 
+      }
     /* check until timeout, no more passwords or matching password found */
     while (found == 0)
       {
       found = pwdgen_next( pwd ) + dofunction( pwd );
+      PWDGEN_ERROR_CHECK;
       }
     }
   return found;
@@ -296,11 +356,9 @@ int main (int argc, char** argv)
   {
   /** Structure describing the internal state of the password generator. */
   struct ssPWD* pwd;
-
   int found = 0;
-  time_t t;
 
-  printf ("DiCoP Workerframe - Copyright (c) by BSI 1998-2006.\n\n");
+  printf ("DiCoP Workerframe - Copyright (c) by BSI 1998-2007.\n\n");
   printf (" Compiled: %s %s with %s rev %s (check-in: %s).\n\n",
          __DATE__, __TIME__, DICOP_VERSION, DICOP_REVISION, DICOP_MODIFIED);
   printf (" See the LICENSE file for licensing information.\n\n");
@@ -310,18 +368,37 @@ int main (int argc, char** argv)
   pwd = init(argc,argv);
   if (pwd == NULL)
     {
-    printf ("\nError: Couldn't initialize password generator - aborting.\n");
-    return 3;
+    printf ("\n Error: Couldn't initialize password generator - aborting.\n");
+    return PWD_ERROR;
     }
 
   printf ("done.\nInitializing user tables...\n"); 
-  if (initfunction(pwd) != 0)
+  if ( (0 != initfunction(pwd)) || (0 != pwd->error))
     {
-    printf ("Error: initfunction() returned an error - aborting.\n");
-    return 3;
+    printf (" Error: initfunction() returned an error - aborting.\n");
+    return PWD_ERROR;
     }
 
-  printf (" done.\n Today we will check pwds in blocks of %i.\n", pwd->par_maxcnt);
+  printf ("done.\nFinalizing password generator... ");
+  if (PWD_INIT_OK != pwdgen_finalize(pwd))
+    {
+    printf ("\n Error: Couldn't finalize generator - aborting.\n");
+    return PWD_ERROR;
+    }
+  printf ("done.\n");
+
+  /* produce the final list for verification */
+  pwdgen_print_encodings(pwd);
+
+  if (pwd->par_maxcnt == 0)
+    {
+    printf ("Parallel pwd generator unused, will check passwords one by one.\n");
+    }
+  else
+    {
+    printf ("Parallel pwd generator successfully initialized, batch size is %i.\n",
+      pwd->par_maxcnt);
+    }
 
   /* flush all output buffers */
   fflush(NULL);
@@ -347,10 +424,10 @@ int main (int argc, char** argv)
     }
 
   /* some error in dofunction() or related functions? */
-  if (found >= PWD_ERROR)
+  if (found >= PWD_ERROR || (pwd->error != 0))
     {
     printf (" Error in dofunction() - Aborting.\n");
-    return 3;
+    return PWD_ERROR;
     }
 
   /**************************************************************************/
@@ -362,23 +439,25 @@ int main (int argc, char** argv)
    */
   found = found >> 1;
   if (found > 2) { found = 1; } 	/* timeout + found => found */
-  t = time(NULL);
-  printf ("%s done.\n\n", ctime(&t)); fflush(NULL);
+  pwdgen_print_time ("\n%s done.\n\n");
 
   pwdgen_stop( pwd );
   stopfunction();
 
-  hexdump ("Last tested password:", pwd->pwd, pwd->length);
+  printf ("Last tested password (in %s):",
+	pwdgen_encoding(pwd->cur->encoding));
+  hexdump_pwd ("\n", pwd->cur->content, pwd->cur->bytes);
 
-  a2h(pwd->pwd, pwd->length);
-  printf ("\nLast tested password in hex was '%s'\n",pwd->pwd);
+  a2h(pwd->cur->content, pwd->cur->bytes);
+  printf ("\nLast tested password in hex was '%s'\n",pwd->cur->content);
 
   printf ("Stopcode is '%i'\n", found );
   printf ("CRC of chunk is '%x'\n",pwd->crc);
   if (pwd->took < 1) { pwd->took = 1; }
-  printf ("Did %.0f passwords in %.0f seconds => %.0f tries/s\n",
+  printf ("Did %.0Lf passwords in %.0Lf seconds => %.0Lf tries/s\n",
     pwd->pwds, pwd->took, pwd->pwds / pwd->took);
-  printf ("All done\n\n");
+  printf ("All done.\n\n");
 
-  return found; 	/* 0 = none, 1 found password */
+  /* 0 = none, 1 = found password, 2 = timeout, 3 = timeout but found, >3 = error */
+  return found; 
   }

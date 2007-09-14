@@ -37,7 +37,7 @@ while (<DATA>)
   {
   next if /^#/;
   next if /^\s*$/;
-  chomp();
+  s/[\n\r]//g;		# remove newlines
   my @a = split /,/, $_;
   if ($a[3] !~ /chunk/)
     {
@@ -83,7 +83,7 @@ sub _read_file
   open $FILE, $file or die("Cannot read file '$file': $!");
   while (my $line = <$FILE>)
     {
-    chomp($line);
+    $line =~ s/[\n\r]//g;		# remove newlines
     push @pwds, a2h($line);
     }
   close $FILE;

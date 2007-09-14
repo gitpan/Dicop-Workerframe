@@ -1,1 +1,24 @@
 This directory contains files that are used during the build process.
+
+In addition, there are a few scripts that are used to generated header
+files. These are usually pre-generated before bundling the package
+together, but the scripts can be re-run any time to update the generated
+header files.
+
+The *.tpl files are templates used by the various scripts.
+
+ Filename		Description				Used by	
+ ---------------------------------------------------------------------------
+ CaseFolding.txt	Unicode case folding definition		gen_utf8.pl
+ Doxygen		Doxygen config file for English		make doc
+ Doxygen-de		Doxygen config file for German		make doc-de
+ Makefile.pm		common Makefile.PL code			make
+ conv.tpl		results in f.i. cp437.h			gen_cp.pl
+ encodings.tpl		results in encodings.h			gen_cp.pl
+ mapppings.tpl		results in mappings.h			gen_cp.pl
+ patch.tpl		results in patch.h			gen_patch_h.pl
+ gen_patch_h.pl		generates patch.h
+ gen_utf8.pl		generates utf_8.h			gen_tables.pl
+ gen_cp.pl		generates all charset tables		gen_tables.pl
+ gen_tables.pl		calls gen_cpl.pl and gen_utf8.pl
+

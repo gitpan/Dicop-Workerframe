@@ -21,9 +21,9 @@ and import it into GnuPG.
 Verify the signature of the .tar.gz file by downloading the .tar.gz.asc file
 and run 
 
-	gpg Dicop-Workerframe-2.18.tar.gz.asc
+	gpg Dicop-Workerframe-2.19.tar.gz.asc
 
-Replace "2.18" with the actual version number you got.
+Replace "2.19" with the actual version number you got.
 
 =back
 
@@ -116,9 +116,9 @@ the server/client. It is just there to build new workers for the cluster.
 
 Just untar/ungzip the package to a directory of your choice:
 
-	tar -xzf Dicop-Workerframe-2.18.tar.gz
+	tar -xzf Dicop-Workerframe-2.19.tar.gz
 
-Replace "2.18" by the actual version you got.
+Replace "2.19" by the actual version you got.
 
         perl Makefile.PL
         make test

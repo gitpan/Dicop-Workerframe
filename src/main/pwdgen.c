@@ -20,7 +20,7 @@
  */
 unsigned int MAXSETS = 0;
 
-#define GEN_VERSION "v0.36"
+#define GEN_VERSION "v0.37"
 
 /* ************************************************************************* */
 /** Find a charset in the list read by pwdgen_read_charsets(), by the given
@@ -101,6 +101,7 @@ enum eEncodings pwdgen_parse_locale (const char *locale)
 	C
 	en_EN.UTF-8
 	English_United States.1252
+	LC_CTYPE=en_US.UTF-8;LC_NUMERIC=C;LC_TIME=C;LC_COLLATE=C;LC_MONETARY=C;...
   */
 
   int s = strlen(locale);
@@ -113,6 +114,16 @@ enum eEncodings pwdgen_parse_locale (const char *locale)
     {
     return ASCII;
     }
+  if ((s > 10) && (0 == memcmp(locale, "LC_CTYPE=", 9)))
+    {
+    /* skip ahead to the first ";" or the end */
+    src = 9;
+    while ((src < s) && locale[src] != ';')
+      {
+      src++;
+      }
+    }
+  /* start at the last character */
   src--;
   /* go backwards from the last character until we are at either a
      [^A-Za-z0-9_-], or at the start */
@@ -124,7 +135,7 @@ enum eEncodings pwdgen_parse_locale (const char *locale)
             (locale[src] == '-') )) { src--; }
   src++;
   /* src now points to the first valid char */
-  while (src < s && j < 30)
+  while (src < s && j < 30 && locale[src] != ';')
     {
     enc_name[j] = locale[src]; src++; j++;
     }
@@ -146,6 +157,17 @@ pwdgen_init (const char *start, const char *end,
 	     const char *target,
 	     const char *set, const unsigned int timeout, const struct ssKey *keys)
   {
+  /* #define SET_SIMPLE 0 
+     #define SET_GROUPED 1
+     #define SET_DICTIONARY 2
+     #define SET_EXTRACT 3 */ 
+
+  char* charset_type[12] = {
+    "SIMPLE",
+    "GROUPED",
+    "DICTIONARY"
+    "EXTRACT",
+  };
   unsigned int i, j, s, found;
   unsigned char c;
   unsigned int *table;
@@ -199,12 +221,9 @@ pwdgen_init (const char *start, const char *end,
       printf (" *** Warning: Cannot determine encoding from locale '%s', fallback to ASCII.\n", locale);
       sPWD.locale = ASCII;
       }
-    printf (" Current locale  : %s\n Current encoding: %s\n", locale, 
+    printf (" Current locale            : %s\n Current encoding          : %s\n", locale, 
       pwdgen_encoding(sPWD.locale));
     }
-
-  sPWD.encoding[0] = ISO_8859_1;		/* the default for the table-driven generator */
-  sPWD.encodings = 1;				/* we have one */
 
   sPWD.crc = 0;
   sPWD.overflow = sPWD.gen_length;
@@ -235,6 +254,7 @@ pwdgen_init (const char *start, const char *end,
   sPWD.timeout = timeout;
   sPWD.report_status = 30;	/* report after 30 seconds, than every 60s and so on */
   sPWD.tstart = time (NULL);
+
   sPWD.tlast = sPWD.tstart;		/* fake a last check to now() */
   sPWD.tlast_report = sPWD.tstart;	/* fake a last report to now() */
 
@@ -316,7 +336,12 @@ pwdgen_init (const char *start, const char *end,
     }
 
   sPWD.type = sPWD.set->type;
-  printf (" Using charset with id %i, type %i.", sPWD.id, sPWD.type);
+  printf (" Using charset with id %i, type: %s.", sPWD.id, charset_type[sPWD.type]);
+  
+  if (sPWD.type == SET_SIMPLE)
+    {
+    printf ("  Simple charset contains %i charactesrs.\n", sPWD.set->length);
+    }
 
   sPWD.length = sPWD.gen_length;
   sPWD.overflow = sPWD.length;
@@ -364,19 +389,28 @@ pwdgen_init (const char *start, const char *end,
       sPWD.endlen = atoi(end);
       sPWD.report_status = 0;		/* don't need to report status */
 
-      sPWD.encodings = 1;
       /* the extractor only handles ISO_8859_1 for now */
       if (1 == pwdcfg_as_int( keys, "extract_utf8", CFG_NOFAIL))
         {
         sPWD.generator_encoding = UTF_8;
-        sPWD.encoding[0] = UTF_8;
         printf ("\n The extractor code will extract strings in UTF-8.");
+	/* unless the config already specified one */
+	if (sPWD.encodings == 0)
+	  {
+          sPWD.encodings = 1;
+          sPWD.encoding[0] = UTF_8;
+	  }
         }
       else
         {
         sPWD.generator_encoding = ISO_8859_1;
-        sPWD.encoding[0] = ISO_8859_1;
-        printf ("\n The extractor code will extract strings in ISO-8859-1.");
+	/* unless the config already specified one */
+	if (sPWD.encodings == 0)
+          {
+          sPWD.encodings = 1;
+	  sPWD.encoding[0] = ISO_8859_1;
+	  }
+        printf ("\n The extractor code will extract strings in ISO-8859-1.\n");
 
         sPWD.extract_set =
           (struct ssCharset*)
@@ -396,17 +430,29 @@ pwdgen_init (const char *start, const char *end,
             sPWD.extract_set->id);
           return NULL;
           }
-        printf (" Extracting characters according to set %i.\n",
-           sPWD.extract_set->id);
+        if (sPWD.extract_set->type == SET_SIMPLE)
+	  {
+          printf (" Extracting according to set %i, type %s, %i characters.\n",
+             sPWD.extract_set->id, charset_type[sPWD.extract_set->type], sPWD.extract_set->length);
+          }
+	else
+	  {
+	  printf (" Extracting characters according to set %i, type %s.\n",
+             sPWD.extract_set->id, charset_type[sPWD.extract_set->type]);
+	  }
         }
       }
     else /* type == SET_DICT */
       {
       /* the dictionary is supposed to be in UTF-8 */
       sPWD.generator_encoding = UTF_8;
-      sPWD.encoding[0] = UTF_8;
-      sPWD.encodings = 1;
       printf ("\n The dictionary is treated as encoded in UTF-8.");
+      /* unless the config already specified one */
+      if (sPWD.encodings == 0)
+	{
+	sPWD.encoding[0] = UTF_8;
+	sPWD.encodings = 1;
+	}
 
       /* word is read-only: */
       strcur = (struct sPwdString**)&sPWD.word;
@@ -517,10 +563,16 @@ pwdgen_init (const char *start, const char *end,
 	printf ("  done.");
 	}			/* end init secondary generators */
     }
-
-
-  if (sPWD.type == SET_GROUPED || sPWD.type == SET_SIMPLE)
+  else
     {
+    /* if (sPWD.type == SET_GROUPED || sPWD.type == SET_SIMPLE) */
+    /* unless the config already specified the output_encoding */
+    if (sPWD.encodings == 0)
+      {
+      sPWD.encoding[0] = ISO_8859_1;	/* default for the table-driven generator */
+      sPWD.encodings = 1;		/* we have only one */
+      }
+
     if (sPWD.endlen < sPWD.startlen)
       {
       /* endlen must be at least equal to startlen */
@@ -610,7 +662,7 @@ pwdgen_init (const char *start, const char *end,
 	  sPWD.todo_mutations, sPWD.done_mutations);
 #endif
 
-  printf ("\n Password generator '%s' successfully initialized.\n",
+  printf ("\n Password generator %s successfully initialized.\n",
 	  GEN_VERSION);
   return &sPWD;
 }
@@ -818,8 +870,8 @@ int pwdgen_time_check (struct ssPWD *sPWD)
       /* make the output to appear immidiately */
       fflush(NULL);
       sPWD->tlast_report = now;
-      /* 30, 60, 120, 240, 480, 960 seconds */
-      if (sPWD->report_status <= 960)
+      /* 30, 60, 120, 240, 480, 960, 1920 seconds */
+      if (sPWD->report_status <= 1920)
 	{
         sPWD->report_status *= 2;
 	}
@@ -941,7 +993,8 @@ int pwdgen_update_cur (const struct ssPWD *sPWD, const int always_convert)
     cur->encoding = sPWD->generator_encoding;
     /* copy over the raw data */
 #ifdef DEBUG
-    printf ("Copy over the raw data into cur.\n");
+    printf ("Copy over the raw data into cur: ");
+    printf ("%i len bytes from %p to %p\n", sPWD->length, sPWD->pwd, cur->content);
 #endif
     memcpy(cur->content, sPWD->pwd, sPWD->length);
     }
@@ -951,8 +1004,9 @@ int pwdgen_update_cur (const struct ssPWD *sPWD, const int always_convert)
   /* Convert the password to the requested encoding, also calculating
      the length in characters. */
 #ifdef DEBUG
-  printf ("cur_encoding: %i '%s'", sPWD->cur_encoding, pwdgen_encoding(sPWD->encoding[sPWD->cur_encoding]));
-  printf ("encodings: %i", sPWD->encodings);
+  printf ("cur_encoding: %i '%s'\n", sPWD->cur_encoding, pwdgen_encoding(sPWD->encoding[sPWD->cur_encoding]));
+  printf ("encodings: %i\n", sPWD->encodings);
+  fflush(NULL);
 #endif
   pwdgen_convert_to(sPWD, cur, sPWD->encoding[sPWD->cur_encoding], sPWD->replacement);
 
@@ -964,6 +1018,13 @@ int pwdgen_update_cur (const struct ssPWD *sPWD, const int always_convert)
   /* next round, try to use the next encoding */
   pwd->cur_encoding++;
 
+  /* only return  if the password really changed: */
+  if ((cur->bytes == pwd->length) &&
+      (0 == memcmp(cur->content, pwd->pwd, cur->bytes)))
+    {
+    /* the password wasn't really changed by the conversion */
+    return -1;
+    }
   return 0;
   }
 
@@ -1256,13 +1317,6 @@ pwdgen_init_tables (struct ssPWD *sPWD, const int type)
   sPWD->pwd[sPWD->length] = 0;			/* zero terminate just so */
   sPWD->pwd_digit[sPWD->gen_length - 1] = 0;	/* init last counter */
 
-/* XXX TODO: check this.
-  if (sPWD->pwd != sPWD->cur->content)
-    {		
-    pwdgen_update_cur(sPWD, 0);
-    }
-*/
-
   }
 
 /* PUBLIC functions */
@@ -1300,7 +1354,7 @@ pwdgen_update_crc (struct ssPWD *sPWD, const char *data, const unsigned int len)
 void
 pwdgen_add (struct ssPWD *sPWD, const unsigned long pwds)
   {
-  sPWD->pwds += pwds;
+  sPWD->pwds += (long double)pwds;
   }
 
 /* ************************************************************************* */

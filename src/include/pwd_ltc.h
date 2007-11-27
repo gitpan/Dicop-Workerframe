@@ -6,8 +6,8 @@
  * @copydoc copyrighttext
 */
 
-#ifndef TOM_CRYPT_H
-#define TOM_CRYPT_H
+#ifndef PWD_TOM_CRYPT_H
+#define PWD_TOM_CRYPT_H
 
 /************************************************************************* */
 /* These macros are defined only when tomcrypt.h was included */
@@ -17,7 +17,6 @@
 
 /* temp. variables for macros */
 int _crypt_err;
-int _cipher_idx;
 
 /* hash */
 

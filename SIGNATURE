@@ -15,31 +15,31 @@ not run its Makefile.PL or Build.PL.
 Hash: SHA1
 
 SHA1 82269f9310217d42767ccf22b2442bc469df5132 BUGS
-SHA1 0ca3f3c27eec8eb9c847a1723019a3ab8e6d1a2c CHANGES
+SHA1 0812d1d5a1f731457b498869cbe63872cc7feaa6 CHANGES
 SHA1 28b3c1c97b3f0647310eb9736682a44933a460ba CHANGES-2.14
-SHA1 7d7d2e5b8fe47d23c2c9e78f2591119a1dd72b72 LICENSE
-SHA1 74cde826428243df5fb4ffa0857367f530ea8184 MANIFEST
+SHA1 4d2311da7852448613f8e363fbd1be0c60ac2b36 LICENSE
+SHA1 0f564bb9674045e987b83231fea239211bdb5f8e MANIFEST
 SHA1 9e8a162b6cc19750de963a450bade2aa6e332d11 MANIFEST.SKIP
-SHA1 ce894b4908dfea4c2bf57888ea100cd451911193 META.yml
+SHA1 dc2e82b6ce5830837bc37534b7e1b458be83d646 META.yml
 SHA1 7657ec7cd69e86393fcb90e2fdbcfa2b9d5e9168 Makefile.PL
-SHA1 e6ab4d5f94c66f277af10d7573d566bac8712174 README
+SHA1 7d15521de643d543876794ff8a3aa1f70f44e080 README
 SHA1 8e99488a2e0c9046fcd083e1f5d3c49629ee142b TODO
 SHA1 540f3aa5e5239a466997894fe68ee9d433c88d4d build/CaseFolding.txt
 SHA1 7842ca9762de5137bc00ea433533b52cc146ccea build/Doxyfile
 SHA1 e7d7bfd8bdd5337d745a7ce138e6ac3e4cc4560d build/Doxyfile-de
-SHA1 5e16e80f3740177fd5f9de07dc7e58347a7b4baf build/Makefile.pm
+SHA1 916160209787b7a99ec551bd7fdbb349dc95289c build/Makefile.pm
 SHA1 a799bf4a2bb0332866d450a23b95f43f26f45b1d build/README
 SHA1 88ce03071885fbb8c01d4fac90ca8d4136477d84 build/conv.tpl
 SHA1 4e597e5a71a6165151ddb894ed94c8583c308caf build/encodings.tpl
 SHA1 7e14e0e490d9c8756c68821b07804819031729e8 build/gen_cp.pl
 SHA1 edd5940224958e188774d973b5987669c7f58efc build/gen_patch_h.pl
-SHA1 3b24a479147477393e00b9c0a592f634b222d6c9 build/gen_tables.pl
-SHA1 ee552a274b5e5f376d69b133516d309cbdd89c57 build/gen_utf8.pl
+SHA1 707650c2aaa02b1c53718bf7043fa1aead518d90 build/gen_tables.pl
+SHA1 4e192044dccaaee08b82d07b1a9c38d38fd5b483 build/gen_utf8.pl
 SHA1 2dfacc7e9c4625874bf03187041957c99fcddf0d build/mappings.tpl
-SHA1 f188e638eebaa27efccc4944faa30f7a0fbb2d41 build/patch.tpl
+SHA1 88952cd66fdcfcba968390dacecdac4da1e8a884 build/patch.tpl
 SHA1 35e4359f8ec7659158e149eb7d71c11d61274d33 dicop.asc
 SHA1 9675cdcacdc090458d65200f51ca795a77413cca doc/API.pod
-SHA1 433e9c85b4e340df514ed742e42fff365664f358 doc/Config.pod
+SHA1 826f5aa5ba270cad1eafb624f596c919374afe9c doc/Config.pod
 SHA1 ef1b326aa9e802c57b1445dda765d5daa3e382b6 doc/Dict.pod
 SHA1 f678135d4982a6c44b4dee2b283065e34fb14e48 doc/Extract.pod
 SHA1 a163c36c61ce7c8d1a63a45a2750f8b1b2dd63ea doc/I18N.pod
@@ -67,6 +67,7 @@ SHA1 fceb83c1393386d3f70731cc0ca08ad53c3143f3 src/include/encoding/cp857.h
 SHA1 f5f22d9c89d10b229c4d4ca22c27257bb573e8dd src/include/encoding/cp860.h
 SHA1 94ec8b892b8d0d406838523904138bd1076f10af src/include/encoding/cp861.h
 SHA1 177734b733dfcc2312ec548fa38d4afb83bde984 src/include/encoding/cp862.h
+SHA1 bf691bb2a0a7d706bb742f4d8ae5bdac85f53954 src/include/encoding/cp863.h
 SHA1 fcd02417d6de5358836ee0fefab03a8f902eb9eb src/include/encoding/cp865.h
 SHA1 f612198cc1d1dd988c8555ef02073aad27149b0f src/include/encoding/cp866.h
 SHA1 6e0d7dfd79539cc886480523d6513302c09eb3a1 src/include/encoding/cp869.h
@@ -100,15 +101,15 @@ SHA1 7bacf4e8aa917ab1608477074a8e7a5e8fc6e743 src/include/encoding/macrumanian.h
 SHA1 b7b3dcdd5f2afd61e83fa2978a68832738020707 src/include/encoding/macsami.h
 SHA1 4a1dab5d4879dcaf96a334c509c5126755ef40cd src/include/encoding/macturkish.h
 SHA1 61d06022ee2964b9fe8f403f5f2772e1def46f5d src/include/encoding/macukrainian.h
-SHA1 7be688148280db2a0e123b9ad583ed28ce511867 src/include/encoding/mappings.h
-SHA1 5fb7e85b432e4ece581cd89264f929f3099d3b1b src/include/encoding/utf8.h
+SHA1 aa96e6e8747ebf1d5a884909e7dd7e9b15dff354 src/include/encoding/mappings.h
+SHA1 2411051d0ea7460803cf4a0ff440352f55245d9e src/include/encoding/utf8.h
 SHA1 a6fac4fd59383fd50734548a5bc22b12864e94f9 src/include/hexdump.h
-SHA1 1c31207ea678972fa18e701b7503cdce6798359e src/include/patch.h
+SHA1 57bb99f123f6621693df5f89bdcbec274f22e041 src/include/patch.h
 SHA1 3769c0b8712a79b2960f40768a5dc2aecdf0633c src/include/pwd_conv.h
 SHA1 6aece061ddd4580b660e2d615262646ef21a0cbb src/include/pwd_img.h
-SHA1 34876f91437505d756bb8fc593bb15ae5862c7bf src/include/pwd_ltc.h
+SHA1 d5935d35fb433b15d55fd4591a404678116dcad9 src/include/pwd_ltc.h
 SHA1 a116c86932f2fedecc88aa0b3bf9c7df38f3ac23 src/include/pwd_par.h
-SHA1 f4ce63709e3e86b93927607ccc7fdbaebd7d835c src/include/pwd_util.h
+SHA1 a7c26d0e83eadb3974c514c912c24fe6aa48a4f6 src/include/pwd_util.h
 SHA1 24361bd59b715d5c955f3dfb58f819f475070484 src/include/pwdcfg.h
 SHA1 21ff56101fdfc9c78173f19d3cca62e3a4c9bfdb src/include/pwddict.h
 SHA1 f918ed1ee45ac801eb49cac5caa0216ed0d65ca3 src/include/pwdgen.h
@@ -116,25 +117,25 @@ SHA1 b0235f64bf874fb1ff20d9cdbb6347b5b54c5219 src/include/pwdread.h
 SHA1 99df41821782e3677784197dba8ce9e5bc5b8b16 src/include/pwdsort.h
 SHA1 df848e9b26a2d64667c364fe5e279c2a1108065d src/main/dicop.c
 SHA1 866f0d5ee00a562c287d105289aa690a9b798edd src/main/hexdump.c
-SHA1 904930b98f5e0292df6db0ce4ca6b124b195e46f src/main/main.c
-SHA1 4fae64bc421b1e8327589a0d219cfdde9ff3558e src/main/pwd_conv.c
-SHA1 9a68803aa30d6f1d4e595c1b22b91727655ad642 src/main/pwd_img.c
+SHA1 48cb91eaf4f345af3d62b2048c1a7d690f454818 src/main/main.c
+SHA1 e6013a55bc0b04079febe96b99faf23b725dbf29 src/main/pwd_conv.c
+SHA1 4eaea0c8236a0d1ea6e478c3626ad2778e4c7adc src/main/pwd_img.c
 SHA1 3e27bccc2fc978468040c0f8804dec78d29b8c2d src/main/pwd_par.c
-SHA1 833d37bff8b6873dc3b6150aa90f6b320c04f457 src/main/pwd_util.c
-SHA1 5b5180bc01beeaa90b1bbfe374d1a50f79be53c8 src/main/pwdcfg.c
+SHA1 62bb0a9dbdfc34b6d4a47dc6b4270aa98a64e01d src/main/pwd_util.c
+SHA1 854b49c505fa4079c777e4e6def086f9d91634a3 src/main/pwdcfg.c
 SHA1 0fc242204db97cca36d88d0b7bef43798ded1547 src/main/pwddict.c
-SHA1 7d19ffc96ea1818daee502a53ea79cf42c3093e7 src/main/pwdgen.c
-SHA1 1a484af5234ab45c0abe8dea07378538ff61d1be src/main/pwdread.c
+SHA1 8b8f07b9b1ba4cf7a56be9bb1f765d1ecb553752 src/main/pwdgen.c
+SHA1 386dd854791047a79921b654c65974eb0bab9795 src/main/pwdread.c
 SHA1 54fed41f78e0fb70a696f1a05b6bde7d7ceb27dd src/main/pwdsort.c
-SHA1 6d3af7a51de91ec66eadfe5b98c2000a88875c3e src/pwdtest/pwdtest.c
+SHA1 26cbe197d5bda54f156fe265f6d8b5a5432c7039 src/pwdtest/pwdtest.c
 SHA1 f1c4ae72d61de2c26d1db9d4ebd6acdb9e71864f src/test/test.c
 SHA1 85f186e43222249965991ab6f39ef4d8986a4667 src/test_cnv/test_cnv.c
-SHA1 7030ffd5d2b08bb34094c3e5dee00033f3925bba src/test_enc/test_enc.c
+SHA1 043800069626654074148d4f361e70f6c743aa8b src/test_enc/test_enc.c
 SHA1 d531062e0ff0d9a278b80b4b54db652ad6c7585c src/test_par/test_par.c
-SHA1 4ac74f8222fa159e00a2dc23345276fbe49ce2cb src/test_sbe/test_sbe.c
+SHA1 8f008c738ed64f670d219da1dc9416ee26402064 src/test_sbe/test_sbe.c
 SHA1 6a304da2fe3f1898f655a01fb47b6350646dca06 t/10_enc.t
 SHA1 df3a3ffc2a26715681c737f68244905f86d77da6 t/11_sbe.t
-SHA1 ebc613d0cb461ce162d19e23649ba04c8ff7dfa4 t/12_1pwd.t
+SHA1 cf8f8a1d2058da0fc844ecbde45a1b886e7d5f76 t/12_1pwd.t
 SHA1 119392e37d5790169d03c0688712b4fa702e505b t/bad.t
 SHA1 93aade1095684f5b9cb78da7ea1a4cabe93ec7c7 t/charsets.def
 SHA1 b711099632d5b878b1761fd54d9293d8d052693e t/conv.t
@@ -251,15 +252,17 @@ SHA1 0c309a35afd21b7a5bb7f1cfd6eb2cd4888e5b37 t/target/ps1023.set
 SHA1 c0af2b3a6042e0165729998f8d9e239373d2efa0 t/target/ps2.set
 SHA1 160edf1e5232af55e50253cb5857e5fbed5c391c t/target/ps3.set
 SHA1 cba745a4da86973ecaaeb72aa9462e460d6279e5 t/target/ps42.set
+SHA1 13380c9fe2c7a320bb967b25f6d4bf42fbc91bab t/target/utf16.cfg
 SHA1 3aa79f3918b9ab052e618cef914d833cffc8efab t/target/utf8.cfg
 SHA1 2c8f29468e21f3fc5a21551576ba2db0d03ddd0b t/test-worker/README
-SHA1 d7a4bdeff6d14965b9c2d5f1e5b158cef996038c t/utf8.t
+SHA1 2a14a65b5d859a3d6631d653d9955efa22e2c76f t/utf16.t
+SHA1 d0508073f9050a2adc21afc37a81fa9935e4b580 t/utf8.t
 SHA1 1849d6981f753acab69f73f12349bc16827e3c56 t/worker.inc
 SHA1 265a72f10740534d45c8c0d720edd98dc7de260c t/worker.t
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.2 (GNU/Linux)
 
-iD8DBQFG6liuYmqMGoA0pxgRAjYDAKCXI9hfZ0kwqmGJY7zfhzrV32eJUQCgtD4K
-5RFDn1n2BzAqHYCs8uqsWnk=
-=IAi4
+iD8DBQFHStE2YmqMGoA0pxgRAvQcAJ94Rfr0LIMWIPS+zlLpMlg8MCjSogCfchUg
+3t4j5zF+b/VC2glfU9RrVUQ=
+=f1mA
 -----END PGP SIGNATURE-----

@@ -8,6 +8,8 @@ use Encode;
 use strict;
 use File::Spec;
 
+chdir 'build' if -d 'build';
+
 _generate();
 
 print "All done.\n";
@@ -53,7 +55,7 @@ sub _generate
 
   my $table = <<EOF
 /** Map start byte to number of continuation bytes for UTF-8 */
-unsigned long utf8_followers[256] = {
+long utf8_followers[256] = {
 EOF
  . _format_table(\@followers) . "\n  };";
 
@@ -98,7 +100,7 @@ sub _format_table
   my $table = ''; my $line = '  ';
   for my $u (@$val)
     {
-    $line .= "$u, ";
+    $line .= $u =~ /^0x/ ? "${u}UL, " : "$u, ";
     if (length($line) > 76)
       {
       $table .= $line . "\n"; $line = "  ";

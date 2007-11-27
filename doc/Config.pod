@@ -7,7 +7,7 @@ Config - DiCoP Workerframe config file format
 
 You can use perldoc to read this document: C<perldoc README>.
 
-Last update: 2006-04-05
+Last update: 2007-10-09
 
 =head1 DESCRIPTION
 
@@ -101,12 +101,6 @@ each job that are impossible to carry over the command line.
 
 ID of the charset to use. This B<MUST> be a plain number like 5.
 
-=item password_prefix
-
-Static prefix for all passwords.
-
-This key can also be set in the chunk description file.
-
 =item dictionary_file
 
 Name of the file containing the dictionary.
@@ -153,12 +147,30 @@ This key can also be set in the chunk description file.
 
 =item password_prefix
 
-A fixed prefix for each password in the keys pace, in hex.
+Deprecated. A fixed prefix for each password in the key space, in hex.
+
+Example:
+
+	password_prefix=31323334
+
+See also L<prefix>.
+
+This key can also be set in the chunk description file.
+
+=item prefix
+
+A fixed prefix for each password in the key space, encoded
+in UTF-8.
+
+Example:
+
+	prefix=Müller
+
+This key can also be set in the chunk description file.
 
 =item extra0, extra1, extra2, ...
 
 These are extra parameters for the job, that follow this format:
-
 
 	extra0=44454647,313233
 
@@ -213,6 +225,21 @@ additional charset description file). But the current workerframe supports
 both ways. The current server implementation will always use a numerical
 charset ID here.
 
+See also: L<charset_type>
+
+=item charset_type
+
+Instead of setting the charset by specifying its number, you can also just
+give the type of it via C<charset_type> by using one of the following strings:
+
+	dictionary
+	extract
+	simple
+	grouped
+
+The workerframe will then use an example charset of the correct type. Mostly
+usefull for C<dictionary> and C<extract>.
+
 =item image_file
 
 Name of the image file for extracting strings. Only used if the charset (see
@@ -220,15 +247,15 @@ L<charset_id> is of the type SET_EXTRACT.
 
 =item start
 
-Start password, or in case of SET_EXTRACT minimum length to extract.
+Start password in hex, or in case of SET_EXTRACT minimum length to extract.
 
 =item end
 
-End password, or in case of SET_EXTRACT maximum length to extract.
+End password in hex, or in case of SET_EXTRACT maximum length to extract.
 
 =item target
 
-Target hash or file name.
+Either a target hash or file name.
 
 =item extractset_id
 
@@ -286,6 +313,43 @@ Offset into the dictionary file, at which the word from C<start> can be found.
 This enables the worker to skip quickly to the first word, instead of scanning
 the file over and over again (for each chunk).
 
+=item input_encoding
+
+Specify the encoding of the input passwords, either for the dictionary file
+(C<dictionary>), the image file (C<extract>), or for the passwords generated
+by a C<simple> or C<grouped> charset.
+
+As a special case, image files (type C<extract>) can contain different
+encodings and these are specified with the different C<extract_XXX> settings
+like L<extract_utf8>.
+
+Examples:
+
+	charset_type=dictionary
+	dictionary=iso8859.txt
+	input_encoding=ISO-8859-1
+
+The default values are as follows:
+
+	Charset type		Encoding
+	----------------------------------------
+	dictionary		UTF-8
+	extract			UTF-8
+	simple			ISO-8859-1
+	grouped			ISO-8859-1
+
+=item output_encoding
+
+Specify a list of the encodings that each password should be produced in.
+
+This is ignored by workers that use one or more specific encodings for the
+passwords.
+
+Examples:
+
+	output_encoding=UTF-8
+	output_encoding=ISO-8859-1,UTF-16
+
 =back
 
 The following keys are normally specified in a JDF, but can also be specified
@@ -299,7 +363,44 @@ depending on whether per-chunk parameters are necessary (CDF) or not (JDF).
 
 =item password_prefix
 
+Deprecated. A fixed prefix for each password in the key space, in hex.
+
+Example:
+
+	password_prefix=31323334
+
+See also L<prefix>.
+
+This key can also be set in the chunk description file.
+
+=item prefix
+
+A fixed prefix for each password in the key space. The encoding of the
+prefix can be specified with L<prefix_encoding> and defaults to UTF-8.
+
+Example:
+
+	prefix=Müller
+
+This key can also be set in the chunk description file.
+
+=item config_encoding
+
+The encoding of the config file itself, defaults to UTF-8. Any text that
+is not in hex (like L<prefix>) will then be interpreted as to be in this
+encoding. Example:
+
+	prefix=Müller
+	config_encoding=ISO-8859-1
+
+=item dictionary
+
+Specifies the file to be used as a dictionary, when the charset
+type is C<SET_DICT>.
+
 =item dictionary_file
+
+Is an alias for C<dictionary>.
 
 =item dictionary_stages
 

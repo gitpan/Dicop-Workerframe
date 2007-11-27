@@ -251,7 +251,7 @@ int initfunction(const struct ssPWD *pwd)
 
   /* ******************************************************************** */
   printf ("### start ###\n");
-  plan_tests(50 + 1);
+  plan_tests(51 + 1);
  
   /* systematic conversion tests in single-byte encodings */
   test_conversion (pwd, ISO_8859_1);
@@ -281,7 +281,7 @@ int initfunction(const struct ssPWD *pwd)
   test_conversion (pwd, CP860);
   test_conversion (pwd, CP861);
   test_conversion (pwd, CP862);
-  /* test_conversion (pwd, CP863); */
+  test_conversion (pwd, CP863);
   test_conversion (pwd, CP865);
   test_conversion (pwd, CP866);
   test_conversion (pwd, CP869);

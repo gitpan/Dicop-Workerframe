@@ -2,7 +2,7 @@
 
 # Test that the test_enc worker runs through only a single password
 # Test that the pwdtest worker not only runs through only a single password,
-# but also correctly find that passwords
+# but also correctly finds that password.
 
 use strict;
 use Test::More;

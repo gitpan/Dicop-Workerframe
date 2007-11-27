@@ -52,11 +52,13 @@ int initfunction(const struct ssPWD *pwd)
     a2h(target,pwd->prefix->bytes);
     /* append target password in ascii */
     strncat(target,pwd->target,128);
+    target[128] = 0;		/* zero terminate */
     }
   else
     {
     /* copy target */
     strncpy(target,pwd->target,128);
+    target[128] = 0;		/* zero terminate */
     }
   printf ("Target key is '%s'\n",target);	
   return PWD_INIT_OK;				/* init was okay */

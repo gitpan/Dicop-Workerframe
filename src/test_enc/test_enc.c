@@ -271,7 +271,7 @@ int initfunction(const struct ssPWD *pwd)
 
   /* ******************************************************************** */
   printf ("### start ###\n");
-  plan_tests(211);
+  plan_tests(212);
  
   /* now run the individiual tests */
 
@@ -757,6 +757,8 @@ int initfunction(const struct ssPWD *pwd)
   equals (pwdgen_parse_locale("en_EN.UTF-8"), UTF_8, "en_EN.UTF-8");
   equals (pwdgen_parse_locale("English_United States.1250"), CP1250, "English_United States.1250");
   equals (pwdgen_parse_locale("German_Germany.1252"), CP1252, "German_Germany.1252");
+  equals (pwdgen_parse_locale("LC_CTYPE=en_US.UTF-8;LC_NUMERIC=C;LC_TIME=C;LC_COLLATE=C;"),
+				UTF_8, "LC_CTYPE=...");
 
   /* ******************************************************************** */
   /* string reverse tests */

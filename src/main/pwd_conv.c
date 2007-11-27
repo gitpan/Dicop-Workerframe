@@ -1519,7 +1519,7 @@ int _utf8_char_to_lc(const struct ssPWD* pwd, const struct sPwdString* string, u
  
   /* patch in the new code point */
   /* first, calculate how many bytes we need to insert */
-  /* single-bytes are handled seperatedly */
+  /* single-bytes are handled separatedly */
   size_old = 1;
   if (0 != (old & 0xFF00)) { size_old++; }
   if (0 != (old & 0xFF0000)) { size_old++; }
@@ -1580,7 +1580,7 @@ int _utf8_char_to_uc(const struct ssPWD* pwd, const struct sPwdString* string, u
  
   /* patch in the new code point */
   /* first, calculate how many bytes we need to insert */
-  /* single-bytes are handled seperatedly */
+  /* single-bytes are handled separatedly */
   size_old = 1;
   if (0 != (old & 0xFF00)) { size_old++; }
   if (0 != (old & 0xFF0000)) { size_old++; }

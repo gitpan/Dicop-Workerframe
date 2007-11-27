@@ -5,8 +5,8 @@
  * 
  * @copydoc copyrighttext
  *  
- * @version v2.18 rev 545 
- * @date Fri Sep 14 10:42:14 2007 
+ * @version v2.19 rev 580 
+ * @date Mon Nov 26 14:58:53 2007 
  * @author Bundesamt f&uuml;r Sicherheit in der Informationstechnik (BSI)
 */
 
@@ -21,16 +21,16 @@
 
 /* version definitions:
    for Makefile.PL: 
-$VERSION = "2.18"
+$VERSION = "2.19"
 */
 
 /** The version string for C code. */
-#define DICOP_VERSION "v2.18"
+#define DICOP_VERSION "v2.19"
 
 /** The revision number. */
-#define DICOP_REVISION "545"
+#define DICOP_REVISION "580"
 
 /** The last-modified string. */
-#define DICOP_MODIFIED "Fri Sep 14 10:42:14 2007"
+#define DICOP_MODIFIED "Mon Nov 26 14:58:53 2007"
 
 #endif

@@ -318,7 +318,7 @@ unsigned long pwdcfg_valid_keys (
     }
   key = cfg->next;
   
-  /* create an array from a list of comma seperated strings */
+  /* create an array from a list of comma separated strings */
   len = strlen(keynames);
   keys = 0; i = 0;
 

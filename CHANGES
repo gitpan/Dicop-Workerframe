@@ -6,6 +6,24 @@
 This document details all the changes from v2.15 onwards - for an older
 change log please see the C<CHANGES-2.14> file.
 
+=head2 2007-11-26 (v2.19 rev 580)
+
+=over 2
+
+=item fixed
+
+	renamed "prefix_encoding" to "config_encoding"
+	document all the new config switches and generally update doc/Config.pod
+	fix segfault in the extract code, when having either one encoding
+	  distinct from the input encoding, or simple more than one encoding
+	fix for darwin builds
+	better LC_TYPE parsing
+	try to not include err.h on Solaris (untested)
+	require Perl 5.6.2 for the build stage
+	add support for CP863
+
+=back
+
 =head2 2007-09-14 (v2.18 rev 546)
 
 Please note that the API has changed slightly, you must adapt your code!
@@ -19,7 +37,7 @@ password. See C<< doc/I18N.pod >> for more details.
 =item added
 
 	support for "prefix" and "prefix_encoding" in config files
-	(unlike "password_prefix", "prefix" is in ASCII/UTF_8 etc)
+	  (unlike "password_prefix", "prefix" is in ASCII/UTF_8 etc)
 	pwdgen_strdup(), and pwdgen_strrev()
 	pwdgen_uc_first(), pwdgen_uc_last() etc.
 

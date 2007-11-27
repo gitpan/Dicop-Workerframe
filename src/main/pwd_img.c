@@ -913,7 +913,7 @@ unsigned int pwdgen_img_check (
 	const unsigned long pwds,
 	const unsigned long len )
   {
-  unsigned long j, checked;
+  unsigned long j, cur_pwd, checked;
   struct sPwdString *cur;
 
   /* cur is read-only: */
@@ -934,7 +934,8 @@ unsigned int pwdgen_img_check (
   cur->encoding = pwd->generator_encoding;
 
   checked = 0;			/* none yet */
-  while (checked++ < pwds)
+  cur_pwd = 0;
+  while (cur_pwd++ < pwds)
     {
     /* patch the current password into the pwd struct */
     for (j = 0; j < len; j++)
@@ -949,20 +950,34 @@ unsigned int pwdgen_img_check (
     if (pwd->pwd != pwd->cur->content)
       {
 #ifdef DEBUG
-      printf ("Updating cur\n");
+      printf ("Updating cur from pwd\n");
 #endif
-     /* XXX TODO: update cur with all requested encodings and call dofunction() for each */
-      pwdgen_update_cur(pwd, 1);
+      /* update cur with all requested encodings and call dofunction() for each */
+      pwd->cur_encoding = 0;
+      while (pwd->cur_encoding < pwd->encodings)
+        {
+        pwdgen_update_cur(pwd, 1);
+        checked++;
+        if (0 != dofunction( pwd ))
+          {
+          pwdgen_add( pwd, checked);
+          return PWD_SUCCESS;
+          }
+        }
       }
-    /* check the password and if the check was successful, return */
-    if (0 != dofunction( pwd ))
+    else
       {
-      pwdgen_add( pwd, checked);
-      return PWD_SUCCESS;
+      checked++;
+      /* check the password as it is, and if the check was successful, return */
+      if (0 != dofunction( pwd ))
+        {
+        pwdgen_add( pwd, checked);
+        return PWD_SUCCESS;
+        }
       }
     }
-  /* add the number of passwords we check to the global counter */
-  pwdgen_add( pwd, pwds);
+  /* add the number of passwords we checked to the global counter */
+  pwdgen_add( pwd, checked);
   return PWD_FAIL;
   }
 

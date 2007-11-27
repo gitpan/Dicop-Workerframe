@@ -12,7 +12,9 @@
 #include <dicop.h>
 
 #ifndef WIN32
+#ifndef __sun
   #include <err.h>
+#endif
 #endif
 
 /* ********************************************************************** */
@@ -75,7 +77,7 @@ off_t pwdgen_file_size(const FILE *fin)
     @section XXX TODO
 
     This routine is platform-dependend (using ".." for updir, and only "\\"
-    or "/" for the file seperator.
+    or "/" for the file separator.
 
     Return codes:
 	- ptr to FILE*: Okay, found file.

@@ -12,9 +12,9 @@
 #include <errno.h>
 #include <stdio.h>
 
-#ifdef WIN32
-
 #include <sys/types.h>
+
+#ifdef WIN32
 
 #ifdef _fseeki64
 #define fseeko _fseeki64

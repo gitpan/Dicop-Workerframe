@@ -103,7 +103,7 @@ struct ssPWD* init (int argc, char** argv)
       sPWD.targetlen = strlen(sPWD.target);
       if ( 0 != initfunction(&sPWD) )
         {
-        printf ("\nFile '%s' is not recognized by this worker.\n\n", argv[2]);
+        printf ("\nFile '%s' was not recognized by this worker.\n\n", argv[2]);
         exit(3);
         }
       printf ("\nFile '%s' looks ok to me.\n\n",argv[2]);

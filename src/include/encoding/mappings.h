@@ -28,7 +28,7 @@
  * @enddeutsch
  *  
  * @version 0.02 
- * @date Wed Aug 29 12:40:21 2007
+ * @date Mon Nov 26 14:28:41 2007
  *  
  * @copydoc copyrighttext
 */
@@ -70,6 +70,7 @@
 #include "encoding/cp860.h"
 #include "encoding/cp861.h"
 #include "encoding/cp862.h"
+#include "encoding/cp863.h"
 #include "encoding/cp865.h"
 #include "encoding/cp866.h"
 #include "encoding/cp869.h"
@@ -197,7 +198,7 @@ unsigned long* encoding_mappings[INVALID_ENCODING + 1] = {
   enc_cp860,
   enc_cp861,
   enc_cp862,
-  NULL,			/* CP863 (French-Canadian) */
+  enc_cp863,
   enc_cp865,
   enc_cp866,
   enc_cp869,
@@ -274,7 +275,7 @@ unsigned long* encoding_tables[INVALID_ENCODING+1] = {
   encoding_cp860,
   encoding_cp861,
   encoding_cp862,
-  NULL,			/* CP863 (French-Canadian) */
+  encoding_cp863,
   encoding_cp865,
   encoding_cp866,
   encoding_cp869,
@@ -351,7 +352,7 @@ unsigned long* codepoint_tables[INVALID_ENCODING+1] = {
   cp_cp860,
   cp_cp861,
   cp_cp862,
-  NULL,			/* CP863 (French-Canadian) */
+  cp_cp863,
   cp_cp865,
   cp_cp866,
   cp_cp869,
@@ -428,7 +429,7 @@ unsigned char* uppercase_tables[INVALID_ENCODING+1] = {
   uc_cp860,
   uc_cp861,
   uc_cp862,
-  NULL,			/* CP863 (French-Canadian) */
+  uc_cp863,
   uc_cp865,
   uc_cp866,
   uc_cp869,
@@ -505,7 +506,7 @@ unsigned char* lowercase_tables[INVALID_ENCODING+1] = {
   lc_cp860,
   lc_cp861,
   lc_cp862,
-  NULL,			/* CP863 (French-Canadian) */
+  lc_cp863,
   lc_cp865,
   lc_cp866,
   lc_cp869,

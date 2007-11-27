@@ -1,4 +1,7 @@
 # common routines for Makefile.PL, so they can be re-used
+
+# We need Perl 5.6.2 or up
+use 5.006002;
 use ExtUtils::MakeMaker;
 use Config;
 use strict;

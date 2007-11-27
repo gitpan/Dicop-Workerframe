@@ -51,6 +51,7 @@ src/include/encoding/cp857.h
 src/include/encoding/cp860.h
 src/include/encoding/cp861.h
 src/include/encoding/cp862.h
+src/include/encoding/cp863.h
 src/include/encoding/cp865.h
 src/include/encoding/cp866.h
 src/include/encoding/cp869.h
@@ -85,7 +86,7 @@ src/include/encoding/macsami.h
 src/include/encoding/macturkish.h
 src/include/encoding/macukrainian.h
 src/include/encoding/mappings.h
-src/include/encoding/utf8.h		UTF-8 support (case folding and conversions)
+src/include/encoding/utf8.h	UTF-8 support (case folding and conversions)
 src/include/hexdump.h		for hexdump.c
 src/include/patch.h		build and revision number
 src/include/pwd_conv.h		for pwd_conv.c
@@ -235,8 +236,10 @@ t/target/ps1023.set		forward, reverse, etc
 t/target/ps2.set		forward, reverse, etc
 t/target/ps3.set		forward, reverse, upper, lower, prefix + dict
 t/target/ps42.set		forward, reverse, prefix + dictionary
+t/target/utf16.cfg
 t/target/utf8.cfg
 t/test-worker/README
+t/utf16.t
 t/utf8.t			test UTF-8 string extraction
 t/worker.inc			actual tests for worker.t
 t/worker.t			test framework with pwdtest

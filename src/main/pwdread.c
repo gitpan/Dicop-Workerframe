@@ -551,7 +551,7 @@ pwdgen_readset (const char *set, struct ssPWD *sPWD)
   unsigned long rc;
   struct ssKey *cfg, *key;
   char valid[256] =
-    "password_prefix,prefix,prefix_encoding,dictionary_file,dictionary_mutations,dictionary_stages,charset_id,input_encoding,output_encoding";
+    "password_prefix,prefix,config_encoding,dictionary_file,dictionary_mutations,dictionary_stages,charset_id,input_encoding,output_encoding";
 
   /* read the config file, if we find it */
   cfg = pwdcfg_read (set);
@@ -586,7 +586,7 @@ pwdgen_readset (const char *set, struct ssPWD *sPWD)
     Interpret the following set of keys from a given chunk or job/charset
     description file:\n
     - prefix
-    - prefix_encoding
+    - config_encoding
     - password_prefix (legacy support)
     - dictionary_file
     - dictionary_file_offset
@@ -630,15 +630,21 @@ pwdgen_set_cfg_keys (struct ssPWD *sPWD, const struct ssKey *cfg)
     prefix->content[250] = 0;			/* zero term. in case */
     prefix->bytes = strlen(prefix->content);
     prefix->characters = -1;
-    prefix->encoding = ISO_8859_1;
-    key = pwdcfg_find_key (cfg, "prefix_encoding", CFG_OPTIONAL);
+    prefix->encoding = UTF_8;
+    key = pwdcfg_find_key (cfg, "config_encoding", CFG_OPTIONAL);
     if (NULL != key)
       {
       prefix->encoding = pwdgen_encoding_from_name(key->value);
+      if (prefix->encoding == INVALID_ENCODING)
+	{
+        printf (" Error: 'config_encoding=%s' is invalid.\n", key->value);
+	pwdgen_error(sPWD, -1);
+	return;
+	}
       }
     else
       {
-      printf (" Warning: 'prefix_encoding' not set, assuming ISO-8859-1.\n");
+      printf (" Warning: 'config_encoding' not set, assuming UTF-8.\n");
       }
     }
 
@@ -691,11 +697,18 @@ pwdgen_set_cfg_keys (struct ssPWD *sPWD, const struct ssKey *cfg)
       }
     }
 
+  /* the default is no encodings set, so that pwdgen_init() will set a default */
+  sPWD->encodings = 0;
+
+  /* after we have set some default encodings, see if the config file wants
+     to override them */
   key = pwdcfg_find_key (cfg,"output_encoding", CFG_OPTIONAL);
   if (NULL != key)
     {
     /* XXX TODO: handle more than one ("UTF-8, ISO-8859-1") and also errors */
-    pwdgen_add_encoding(sPWD, pwdgen_encoding_from_name(key->value));
+    printf (" Config requests to produce: %s\n", key->value);
+    pwdgen_use_encoding(sPWD, pwdgen_encoding_from_name(key->value));
     }
+
   }
 

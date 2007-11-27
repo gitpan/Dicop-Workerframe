@@ -2,6 +2,8 @@
 
 # Generate all the compressed tables for the character set conversion.
 
+use Encode;
+
 chdir 'build' if -d 'build';
 my $cp = 'koi8-r koi8-u ' . join(" ", qw/
   MacRoman
@@ -22,13 +24,12 @@ my $cp = 'koi8-r koi8-u ' . join(" ", qw/
 #  MacThai
 #  MacArabic
 #  MacFarsi
-# unknown to Perl:
-#  CP585
-#  CP863
 
-for (1250 .. 1258, qw/437 737 775 850 852 855 857 860 861 862 865 866 869 874/)
+for (1250 .. 1258, qw/437 737 775 850 852 855 857 858 860 861 862 863 865 866 869 874/)
   {
-  $cp .= "cp$_ ";
+  # guard against unknown encodings (CP863 for instance)
+  my $enc = Encode::find_encoding("cp$_");
+  $cp .= "cp$_ " if defined $enc;
   }
 for (1 .. 11, 13 .. 16)
   {

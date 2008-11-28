@@ -2,7 +2,7 @@
  * @defgroup copyrighttext Copyright
  * @ingroup workerframe
  *
- * @author Copyright &copy; 1998-2007,
+ * @author Copyright &copy; 1998-2008,
  * <a title="Go to our homepage" href="http://www.bund.bsi.de">
  * Bundesamt f&uuml;r Sicherheit in der Informationstechnik</a> (BSI)\n\n
  * This file is part of Dicop-Workerframe. For licencing information see the
@@ -63,8 +63,8 @@ struct ssPWD* init (int argc, char** argv)
   char targetkey[PWD_LEN * 2];
   struct ssKey* keys, *current;
   int i;
-  char pwdset [PWD_LEN];
-  char charset_type [PWD_LEN];
+  char pwdset [PWD_LEN * 2];
+  char charset_type [PWD_LEN * 2];
   char chunkkeys[CFG_KEYS][16] = { "start", "end", "target", "charset_id", "charset_type" };
   char* keysptr[CFG_KEYS];
   int timeout = 0;
@@ -101,6 +101,13 @@ struct ssPWD* init (int argc, char** argv)
       strncpy(sPWD.target,argv[2],255);
       sPWD.target[255] = 0;
       sPWD.targetlen = strlen(sPWD.target);
+      sPWD.identify = 1;
+
+      /* get locale info to allow proper output to the console */
+      pwdgen_query_locale( &sPWD );
+
+      printf ("\n");
+
       if ( 0 != initfunction(&sPWD) )
         {
         printf ("\nFile '%s' was not recognized by this worker.\n\n", argv[2]);
@@ -133,7 +140,7 @@ struct ssPWD* init (int argc, char** argv)
       if (NULL != current)
         {
         /* found the key, so copy its value */
-	strncpy (keysptr[i], current->value, current->valuelen);
+	strncpy (keysptr[i], current->value, PWD_LEN*2-1);
         }
       }
     /* if a charset_type was given, but no charset_id, use a virtual charset_id */
@@ -218,7 +225,7 @@ int gather_pwds (struct ssPWD *pwd)
   /**************************************************************************/
   if ((pwd->type == SET_GROUPED) || (pwd->type == SET_SIMPLE))
     {
-    pwdgen_print_time ("%s Checking first key...\n");
+    pwdgen_print_time ("%s Checking first password...\n");
  
     found = pwdgen_par_push(pwd);
 
@@ -358,7 +365,7 @@ int main (int argc, char** argv)
   struct ssPWD* pwd;
   int found = 0;
 
-  printf ("DiCoP Workerframe - Copyright (c) by BSI 1998-2007.\n\n");
+  printf ("DiCoP Workerframe - Copyright (c) by BSI 1998-2008.\n\n");
   printf (" Compiled: %s %s with %s rev %s (check-in: %s).\n\n",
          __DATE__, __TIME__, DICOP_VERSION, DICOP_REVISION, DICOP_MODIFIED);
   printf (" See the LICENSE file for licensing information.\n\n");
@@ -448,6 +455,12 @@ int main (int argc, char** argv)
 	pwdgen_encoding(pwd->cur->encoding));
   hexdump_pwd ("\n", pwd->cur->content, pwd->cur->bytes);
 
+  /* convert the pwd to UTF-8 if it is in UTF-16 or UTF-32 to make the
+     Dicop server happy on testcases */
+  if (pwd->cur->encoding == UTF_16 || pwd->cur->encoding == UTF_32)
+    {
+    pwdgen_convert (pwd, pwd->cur, UTF_8);
+    }
   a2h(pwd->cur->content, pwd->cur->bytes);
   printf ("\nLast tested password in hex was '%s'\n",pwd->cur->content);
 

@@ -86,6 +86,7 @@ EOF
   $tpl =~ s/##NAME##/UTF-8/g;
   $tpl =~ s/##DATE##/ scalar localtime() /eg;
   $tpl =~ s/##CF##/ scalar @$uc;/eg;
+  $tpl =~ s/##VERSION##/Perl v$], Encode v$Encode::VERSION/g;
 
   _write_file(File::Spec->catfile(
      File::Spec->updir(),'src','include','encoding', 'utf8.h' ), $tpl);
@@ -143,6 +144,12 @@ sub _parse_file
     my $cp = $1; my $cp_2 = $3;
     $cp =~ s/^0+//;
     $cp_2 =~ s/^0+//;
+
+    # special case ß uppercase is ß again (do not support uppercase ß
+    # due to it having a differently sized byte representation, plus it
+    # is seldom used as it is quite new in Unicode)
+    $cp_2 = $cp if $cp eq '00DF';
+    $cp_2 = $cp if $cp eq '1E9E';
 
     # generate the UTF-8 bytes from the given codepoints
     my @b = reverse unpack("U0C*", pack ("U", hex("0x$cp_2")));

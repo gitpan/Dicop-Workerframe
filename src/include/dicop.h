@@ -50,6 +50,14 @@
 #include <pwd_conv.h>
 /* macros and shortcuts for libtomcrypt support */
 #include <pwd_ltc.h>
+#include <pwd_msg.h>
+
+#ifdef WIN32
+#define strnlen(a,b) strlen(a)
+#else
+#define _GNU_SOURCE
+#include <string.h>
+#endif
 
 /* function prototypes */
 

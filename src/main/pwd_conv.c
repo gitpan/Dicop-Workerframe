@@ -200,7 +200,7 @@ int
 			 const char replace)
   {
   size_t highbytes;
-  size_t outsize, characters, outbytes, i, inbytes;
+  size_t outsize, characters, outbytes, i, inbytes, step;
   char *output, *put;
   unsigned char cur, mask;
   unsigned long *table;
@@ -282,7 +282,139 @@ int
   /* convert a single byte encoding to UTF-8: */
   if (encoding == UTF_8)
     {
-    if (input->encoding > MULTIBYTE_ENCODING)
+    if (input->encoding == UTF_16 || input->encoding == UTF_32)
+      {
+      /* UTF-16 to UTF-8 */
+      inbytes = input->bytes;
+      outbytes = 0;
+      /* when converting in-place, the number of currently written bytes
+	 must never be greater than the currently read bytes, or we would
+	 overwrite the still needed bytes. If the overwrite would occur,
+	 we set followers to 1 to signal that we need a scratch buffer */
+      followers = 0;
+      step = 2; if (input->encoding == UTF_32) { step = 4; }
+      /* find out how many bytes we will need */
+      for (i = 0; i < inbytes; i += step)
+        {
+	if (input->encoding == UTF_16)
+	  {
+          codepoint = *(unsigned short*) &input->content[i];
+	  /* XXX TODO: support for surrogate pairs here */
+	  }
+	else
+	  {
+          codepoint = *(unsigned long*) &input->content[i];
+	  }
+        /* UTF-8 encoded strings have the following bit properties: 
+         0x00000000 - 0x0000007F:
+             0xxxxxxx
+
+         0x00000080 - 0x000007FF:
+             110xxxxx 10xxxxxx
+
+         0x00000800 - 0x0000FFFF:
+             1110xxxx 10xxxxxx 10xxxxxx
+
+         0x00010000 - 0x001FFFFF:
+             11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+	*/
+        outbytes++;
+        if (codepoint > 0x7F) { outbytes++; }
+        if (codepoint > 0x7FF) { outbytes++; }
+        if (codepoint > 0xFFFF) { outbytes++; }
+	/* UTF-8 supports maximum 4 byte long sequences */
+        if (codepoint > 0x1FFFF) {
+	  printf ("Error in input string: Invalid codepoint %lu (0x%lx) at byte %lu.\n", codepoint, codepoint, i);
+          return _convert_error(input->encoding, encoding, 111);
+	  }
+/*	printf ("Codepoint: %li (0x%lx) outbytes %i convert in place: %s\n",
+		 codepoint, codepoint, outbytes, followers ? "no" : "yes");  */
+	if (outbytes > (i+step))
+	  {
+	  /* we cannot convert in place */
+	  followers = 1;
+	  }
+        }
+	/*
+      printf ("We will need %i bytes after conversion, and the max. followers are %i\n", outbytes, followers);
+      printf ("Input size is %i and the buffer is %i\n", input->bytes, input->size);  */
+      put = input->content;
+      /* silence "used once" warnings: */
+      output = put; outsize = outbytes;
+      if (followers != 0)
+	{
+        /* can't convert in place, so allocate new buffer, aligned to 16 bytes and at least +1 byte */
+        outsize = ((outbytes / 16)+1) * 16;
+        /* but don't make the new buffer smaller than the input buffer: */
+        if (outsize < input->size)
+	  {
+          outsize = input->size;
+	  }
+        if (NULL == (output = malloc(outsize)))
+          {
+          return _out_of_memory(pwd, " pwdgen_convert_to()", outsize);
+          }
+	put = output;
+	}
+      for (i = 0; i < inbytes; i += step)
+        {
+	if (input->encoding == UTF_16)
+	  {
+          codepoint = *(unsigned short*) &input->content[i];
+	  /* XXX TODO: support for surrogate pairs here */
+	  }
+	else
+	  {
+          codepoint = *(unsigned long*) &input->content[i];
+	  }
+        if (codepoint <= 0x7F)
+	  {
+	  *put = codepoint & 0xFF; put++;
+	  }
+        else if (codepoint <= 0x7FF)
+	  {
+          /* 0x00000080 - 0x000007FF:
+           	110xxxxx 10xxxxxx
+	  */
+	  *put = 0xC0 + ((codepoint>>6) & 0x1F); put++;
+	  *put = 0x80 + (codepoint & 0x3F); put++;
+	  }
+        else if (codepoint <= 0xFFFF)
+	  {
+          /* 0x00000800 - 0x0000FFFF:
+             1110xxxx 10xxxxxx 10xxxxxx
+	  */
+	  *put = 0xE0 + ((codepoint>>12) & 0x0F); put++;
+	  *put = 0x80 + ((codepoint>>6) & 0x3F); put++;
+	  *put = 0x80 + (codepoint & 0x3F); put++;
+	  }
+        else /* if (codepoint <= 0x1FFFFF) */
+          /* 0x00010000 - 0x001FFFFF:
+             11110xxx 10xxxxxx 10xxxxxx 10xxxxxx */
+	  {
+	  *put = 0xF0 + ((codepoint>>18) & 0x07); put++;
+	  *put = 0x80 + ((codepoint>>12) & 0x3F); put++;
+	  *put = 0x80 + ((codepoint>>6) & 0x3F); put++;
+	  *put = 0x80 + (codepoint & 0x3F); put++;
+	  }
+	}
+      /* zero-terminate the output */
+      *put = 0x00;
+      if (followers != 0)
+	{
+	/* free old buffer and swap in new */
+	free(input->_buffer);
+        input->_buffer = output;
+	input->content = output;
+	input->size = outsize;
+	}
+      input->bytes = outbytes;
+      /* XXX do surrogate pairs for UTF-16 */
+      input->characters = inbytes / step;
+      input->encoding = encoding;
+      return 0;
+      }
+    else if (input->encoding > MULTIBYTE_ENCODING)
       {
       return _convert_error(input->encoding, encoding, 1);
       }
@@ -336,7 +468,7 @@ int
           printf ("Byte is highbit, result 0x%08lX ", table[cur]);
 #endif
           *(unsigned long*)put = table[cur];
-          /* XXX TODO: support up to 6 byte UTF-8 */
+          /* support up to 4 bytes UTF-8 */
           put += 2;
           if (*put != 0)
             {
@@ -385,7 +517,7 @@ int
       if (highbytes == 0)
         {
 	/* XXX TODO CHECK */
-	/* we assume that 0..128 in UTF-8 can be mapped 1-to-1 to the other set */
+	/* we assume that 0..127 in UTF-8 can be mapped 1-to-1 to the other set */
 	input->characters = input->bytes;
 	input->encoding = encoding;
 	/* nothing to do */
@@ -419,11 +551,6 @@ int
          0x00010000 - 0x001FFFFF:
              11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
 
-         0x00200000 - 0x03FFFFFF:
-             111110xx 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx
-
-         0x04000000 - 0x7FFFFFFF:
-             1111110x 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx
         */
         cur = output[i];
         outbytes++;
@@ -563,12 +690,6 @@ int
 
          0x00010000 - 0x001FFFFF:
              11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
-
-         0x00200000 - 0x03FFFFFF:
-             111110xx 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx
-
-         0x04000000 - 0x7FFFFFFF:
-             1111110x 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx
         */
         cur = input->content[i];
         characters++;
@@ -663,6 +784,48 @@ int
       {
       outbytes = input->bytes * 4;
       outsize = outbytes + 4;
+      }
+    else if (input->encoding < MULTIBYTE_ENCODING && encoding == ASCII)
+      {
+      /* single-byte into ASCII */
+      /* count how many high bytes we have */
+      highbytes = 0; inbytes = input->bytes;
+      for (i = 0; i < inbytes; i++)
+        {
+        highbytes += ((unsigned char)input->content[i] & 0x80) >> 7;
+        }
+      input->encoding = encoding;
+      input->characters = input->bytes;
+      if (highbytes == 0)
+        {
+	/* XXX TODO CHECK */
+	/* we assume that 0..127 in the source can be mapped 1-to-1 to the other set */
+	/* nothing to do */
+	return 0;
+	}
+      /* We can work in the same buffer as the output will be the same lenght */
+      output = input->_buffer;
+      put = input->_buffer;
+      outbytes = 0;
+      /* now convert the string */
+      for (i = 0; i < inbytes; i++)
+	{
+	if ((unsigned char)*put > 127)
+	  {
+	  *output = replace;
+	  /* if replace = 0x00, drop the input character */
+	  if (replace != 0) { output++; outbytes++; }
+	  }
+        else
+          {
+	  *output = *put; output++; outbytes++;
+          }
+	put++;
+	}
+      input->bytes = outbytes;
+      input->characters = outbytes;
+      *output = 0;
+      return 0;				/* success */
       }
     else
       {
@@ -817,7 +980,9 @@ int pwdgen_make_string_invalid(const struct ssPWD* pwd, struct sPwdString* str)
 
 /** Check the bytes of the string to be valid, e.g. inside the range
     that is specified by the encoding. As a side-effect, this routine
-    will set the correct count of characters inside the string. */
+    will set the correct count of characters inside the string.
+    Returns 0 for ok, and -1 for error.
+    */
 int pwdgen_check_string(const struct ssPWD* pwd, struct sPwdString* string)
   {
   unsigned long i, followers;
@@ -899,14 +1064,7 @@ int pwdgen_check_string(const struct ssPWD* pwd, struct sPwdString* string)
 
        0x00010000 - 0x001FFFFF:
            11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
-
-       0x00200000 - 0x03FFFFFF:
-           111110xx 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx
-
-       0x04000000 - 0x7FFFFFFF:
-           1111110x 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx
     */
-
     cur = (unsigned char)string->content[i];
     string->characters++;
     /* printf ("At pos %i byte 0x%02x\n", i, cur); */
@@ -940,6 +1098,120 @@ int pwdgen_check_string(const struct ssPWD* pwd, struct sPwdString* string)
   return 0;
   }
 
+/** Truncate the string to have only X characters. 
+    Returns:
+    - 0 for no change (because the string was already shorter)
+    - 1 for truncating 
+    - -1 for error */
+int pwdgen_truncate_string(const struct ssPWD *pwd, struct sPwdString* str, const size_t max_chars)
+  {
+  size_t i;
+  int rc;
+  char *cur, *end;
+
+  /* STATIC or READ_ONLY? */
+  if (PWDSTR_IS_STATIC(str))
+    {
+    printf (" Error: Cannot truncate static string in pwdgen_truncate_string.\n");
+    return pwdgen_error(pwd, -1);
+    }
+  if (PWDSTR_IS_READ_ONLY(str))
+    {
+    printf (" Error: Cannot truncate read-only string in pwdgen_truncate_string.\n");
+    return pwdgen_error(pwd, -1);
+    }
+  if (max_chars < 0)
+    {
+    printf (" Error: Need positive number for max_chars in pwdgen_truncate_string.\n");
+    return pwdgen_error(pwd, -1);
+    }
+
+  /* if not yet known, calculate the number of characters */
+  if (str->characters != (size_t)-1)
+    {
+    /* for single-byte encodings, use a faster way */
+    if (str->encoding < MULTIBYTE_ENCODING)
+      {
+      str->characters = str->bytes;
+      }
+    else
+      {
+      rc = pwdgen_check_string(pwd, str);
+      }
+    }
+
+  if (str->characters < max_chars)
+    {
+    /* no change possible */
+    return 0;
+    }
+
+  str->characters = max_chars;
+  if (str->encoding < MULTIBYTE_ENCODING)
+    {
+    /* single byte encoding, so we can just truncate the number of bytes */
+    str->bytes = str->characters;
+    }
+  else if (str->encoding == UTF_8)
+    {
+    /* need to count characters from the front until we have max_chars.
+       This also handles the case when the characters of the string are
+       not yet known. */
+    i = 0; cur = str->content; end = cur + str->bytes;
+    while (i < max_chars && cur < end)
+      {
+      /* UTF-8 encoded strings have the following bit properties: 
+       0x00000000 - 0x0000007F:
+           0xxxxxxx
+
+       0x00000080 - 0x000007FF:
+           110xxxxx 10xxxxxx
+
+       0x00000800 - 0x0000FFFF:
+           1110xxxx 10xxxxxx 10xxxxxx
+
+       0x00010000 - 0x001FFFFF:
+           11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+      */
+      /* one character more */
+      i++; cur++;
+      /* printf ("Characters seen: %i cur %p end %p bytes %i chars: %i\n", i, cur, end, cur - str->content, i); */
+      if ((*(cur-1) & 0x80) != 0)
+	{
+	/* skip follower bytes */
+	while (cur < end && ((*cur & 0xC0) == 0x80)) { cur++; }
+	}
+      }
+    /* zero-terminate */
+    if (cur < end) { *cur = 0x0; }
+    /*  printf ("Characters seen: %i cur %p end %p bytes %i chars: %i\n", i, cur, end, cur - str->content, i); */
+    str->bytes = cur - str->content;
+    str->characters = i;
+    return 1;
+    }
+  else if (str->encoding == UTF_16)
+    {
+    /* XXX TODO: surrogate pairs */
+    /* each character is 2 bytes long */
+    str->bytes = str->characters << 1;
+    }
+  else if (str->encoding == UTF_32)
+    {
+    /* each character is 4 bytes long */
+    str->bytes = str->characters << 2;
+    }
+  else
+    {
+    printf (" Error: Cannot truncate string in encoding %s in pwdgen_truncate_string.\n",
+	pwdgen_encoding(str->encoding));
+    return pwdgen_error(pwd, -1);
+    }
+  /* zero-terminate */
+  str->content[str->bytes] = 0x0;
+
+  return 1;
+  }
+
 /** Resize the storage buffer of a string to make more or
     less room.  The min_size parameter gives the minimum number of bytes
     the string should have after this operation, and it should be
@@ -963,21 +1235,43 @@ int pwdgen_resize_string(const struct ssPWD *pwd, struct sPwdString* str, const 
   /* read-only strings can have their buffer size changed, unless it would
      truncate the string */
   msize = min_size;
-  if (msize < str->bytes)
+  if (msize <= str->bytes)
     {
-    /* XXX TODO: truncating an UTF-8 string does not work like this! */
     if (PWDSTR_IS_READ_ONLY(str))
       {
       printf (" Error: Cannot truncate read-only string in pwdgen_resize_string.\n");
       return pwdgen_error(pwd, -1);
       }
-    if (str->encoding >= MULTIBYTE_ENCODING)
+    if (str->encoding == UTF_8)
+      {
+      /* XXX TODO: truncating an UTF-8 string does not work like this! */
+      printf (" Error: Cannot truncate UTF-8 string in pwdgen_resize_string.\n");
+      return pwdgen_error(pwd, -1);
+      }
+    else if (str->encoding == UTF_32)
+      {
+      /* we need 4 bytes for zero termination */
+      str->bytes = ((msize >> 2)-1) << 2;
+      str->characters = str->bytes >> 2;
+      }
+    else if (str->encoding == UTF_16)
+      {
+      /* XXX TODO surrogate pairs */
+      /* we need 2 bytes for zero termination */
+      str->bytes = ((msize >> 1)-1) << 1;
+      str->characters = str->bytes >> 1;
+      }
+    else if (str->encoding >= MULTIBYTE_ENCODING)
       {
       printf (" Error: Cannot yet truncate string with multi-byte encoding in pwdgen_resize_string.\n");
       return pwdgen_error(pwd, -1);
       }
-    str->bytes = msize;
-    str->characters = (size_t)-1;
+    else
+      {
+      /* need one byte for zero termination */
+      str->bytes = msize - 1;
+      str->characters = (size_t)-1;
+      }
     /* shortcut so we don't need to call pwdgen_strlen() */
     if (msize == 0)
       {
@@ -988,7 +1282,7 @@ int pwdgen_resize_string(const struct ssPWD *pwd, struct sPwdString* str, const 
   /* XXX TODO: check that this really works with offsets */
   if (str->size != msize)
     {
-    ptr_diff = str->content - str->_buffer;	/* have some offset? */
+    ptr_diff = str->content - str->_buffer;	/* do we have some offset into the buffer? */
     rc = realloc (str->_buffer, msize);
     if (NULL == rc)
       {
@@ -997,9 +1291,25 @@ int pwdgen_resize_string(const struct ssPWD *pwd, struct sPwdString* str, const 
       return pwdgen_error(pwd, -1);
       }
 
+    /*
+	printf ("size %i msize %i rc %p (old: %p) diff %i\n", str->size, msize, rc, str->_buffer, ptr_diff);
+	printf ("bytes %i chars %i\n", str->bytes, str->characters); */
     str->size = msize;
     str->_buffer = rc;
     str->content = rc + ptr_diff;
+
+    /* zero terminate */
+    if (str->encoding == UTF_16)
+      {
+      str->_buffer[str->bytes+1] = 0x0;
+      }
+    else if (str->encoding == UTF_32)
+      {
+      str->_buffer[str->bytes+1] = 0x0;
+      str->_buffer[str->bytes+2] = 0x0;
+      str->_buffer[str->bytes+3] = 0x0;
+      }
+    str->_buffer[str->bytes] = 0x0;
     }
   return 0;
   }
@@ -1075,12 +1385,6 @@ size_t pwdgen_strlen(const struct ssPWD *pwd, struct sPwdString* string)
 
        0x00010000 - 0x001FFFFF:
            11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
-
-       0x00200000 - 0x03FFFFFF:
-           111110xx 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx
-
-       0x04000000 - 0x7FFFFFFF:
-           1111110x 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx
     */
 
     cur = string->content[i];
@@ -1534,8 +1838,8 @@ int _utf8_char_to_lc(const struct ssPWD* pwd, const struct sPwdString* string, u
   if (size_new != size_old)
     {
     /* XXX TODO: handle here different byte lenghts */
-    printf (" Error: Cannot do uc() for string in %s yet due to differently sizeed byte representations.\n",
-    pwdgen_encoding(string->encoding));
+    printf (" Error: Cannot do lc() from %x to %x in %s yet due to differently sized byte representations.\n",
+	old, new, pwdgen_encoding(string->encoding));
     return pwdgen_error(pwd, -1);
     }
  
@@ -1595,8 +1899,8 @@ int _utf8_char_to_uc(const struct ssPWD* pwd, const struct sPwdString* string, u
   if (size_new != size_old)
     {
     /* XXX TODO: handle here different byte lenghts */
-    printf (" Error: Cannot do uc() for string in %s yet due to different size byte representations.\n",
-    pwdgen_encoding(string->encoding));
+    printf (" Error: Cannot do uc() from %x to %x in %s yet due to differently sized byte representations.\n",
+    	old, new, pwdgen_encoding(string->encoding));
     return pwdgen_error(pwd, -1);
     }
   
@@ -1940,9 +2244,9 @@ int pwdgen_uc_vowels(const struct ssPWD* pwd, struct sPwdString* string)
            (in == 'i') ||
            (in == 'e') )
         {
-        /* XXX TODO: simple do uc(in) for speed? */
-        rc |= _utf8_char_to_uc(pwd, string, &ofs);
+	rc = 1; string->content[ofs] &= 0xDF; ofs++;
         }
+      /* Not: AOIUE */
       else if ( (in != 'A') &&
            (in != 'O') &&
            (in != 'U') &&
@@ -1951,7 +2255,7 @@ int pwdgen_uc_vowels(const struct ssPWD* pwd, struct sPwdString* string)
         {
 	rc |= _utf8_char_to_lc(pwd, string, &ofs);
 	}
-      /* aoiue */
+      /* AOIUE */
       else { ofs++; }
       }
     return rc;
@@ -2027,8 +2331,7 @@ int pwdgen_uc_consonants(const struct ssPWD* pwd, struct sPwdString* string)
            (in == 'I') ||
            (in == 'E') )
         {
-        /* XXX TODO: simple do uc(in) for speed? */
-        rc |= _utf8_char_to_lc(pwd, string, &ofs);
+        rc = 1; string->content[ofs] |= 0x20; ofs++;
         }
       else if ( (in != 'a') &&
            (in != 'o') &&
@@ -2273,7 +2576,7 @@ int pwdgen_strrev(const struct ssPWD* pwd, struct sPwdString* string)
   unsigned char *temp;
   unsigned short *sl, *sr, s;
   unsigned long *ll, *lr, l;
-  unsigned char *cl, *cr, c;
+  char *cl, *cr, c;
 
   if (string->bytes == 0)
     {
@@ -2293,6 +2596,7 @@ int pwdgen_strrev(const struct ssPWD* pwd, struct sPwdString* string)
     cl = string->content; cr = &string->content[ string->bytes - 1 ]; rc = 0;
     while (cl < cr)
       {
+      /* if we have an odd number of bytes, don't swap the middle byte with itself */
       if (*cl != *cr)
 	{
         rc = 1; c = *cl; *cl = *cr; *cr = c;

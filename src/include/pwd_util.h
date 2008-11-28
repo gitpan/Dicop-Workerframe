@@ -9,9 +9,20 @@
 #ifndef DICOP_PWD_UTIL_H
 #define DICOP_PWD_UTIL_H
 
-#include <errno.h>
-#include <stdio.h>
+#ifndef __sun
 
+#include <errno.h>
+
+#else
+
+/* TODO: find out how to access errno on Solaris */
+#define errno 0
+#define strerror(str) str
+
+#endif		/* end of sun specific code */
+
+#include <string.h>
+#include <stdio.h>
 #include <sys/types.h>
 
 #ifdef WIN32
@@ -25,7 +36,7 @@
 #define ftello ftell
 #endif
 
-#endif
+#endif		/* end of WIN32 specific code */
 
 /* print current time inside the given format string */
 void pwdgen_print_time (const char* format);
@@ -111,11 +122,24 @@ off_t pwdgen_file_size(const FILE *fin);
 void
 pwdgen_convert_hex(char *target, const char *targetkey, const unsigned int len);
 
-#define pwdgen_from_hex(target,targetkey,len) if (strlen(targetkey) != len)\
+int __i;
+
+#define pwdgen_from_hex(target,targetkey,len) if (strnlen(targetkey,len) != len)\
     {\
     printf ("Error! Targetkey must be %lli chars long, but is %lli.\n",\
 	(long long)len, (long long)strlen(targetkey));\
     return PWD_ERROR;\
+    }\
+  for (__i = 0; __i < len; __i++)\
+    {\
+    if ( ((targetkey[__i] < '0') || (targetkey[__i] > '9')) &&\
+         ((targetkey[__i] < 'a') || (targetkey[__i] > 'f')) &&\
+         ((targetkey[__i] < 'A') || (targetkey[__i] > 'F')) )\
+      {\
+      printf ("Error: Expected %lli bytes hexadecimal hash, but got '%s'.\n",\
+        (long long)len, targetkey);\
+      return PWD_ERROR;\
+      }\
     }\
   pwdgen_convert_hex(target, targetkey, len);
 

@@ -8,7 +8,7 @@
  * This file has been automatically generated. Do not edit!
  *  
  * @version 0.01 
- * @date Tue Aug 28 14:00:50 2007
+ * @date Tue Apr 15 15:13:25 2008
  * @author Bundesamt f&uuml;r Sicherheit in der Informationstechnik (BSI)
 */
 

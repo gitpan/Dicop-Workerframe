@@ -1,9 +1,11 @@
----
-name: Dicop-Workerframe
-version: 2.19
-version_from: src/include/patch.h
-license: bsd
-distribution_type: module
-generated_by: Dicop-Workerframe version 2.19
-installdirs: none
-requires: {}
+--- #YAML:1.0
+name:                Dicop-Workerframe
+version:             2.21
+abstract:            Framework for creating workers for a DiCoP system
+license:             BSD
+generated_by:        ExtUtils::MakeMaker version 6.36_01
+distribution_type:   module
+requires:     
+meta-spec:
+    url:     http://module-build.sourceforge.net/META-spec-v1.2.html
+    version: 1.2

@@ -92,6 +92,7 @@ src/include/patch.h		build and revision number
 src/include/pwd_conv.h		for pwd_conv.c
 src/include/pwd_img.h		for pwd_img.c
 src/include/pwd_ltc.h		handy macros for libtomcrypt support
+src/include/pwd_msg.h
 src/include/pwd_par.h		for pwd_par.c
 src/include/pwd_util.h		for pwd_util.c
 src/include/pwdcfg.h
@@ -104,6 +105,7 @@ src/main/hexdump.c		generate hexdumps of memory areas
 src/main/main.c			workerframe
 src/main/pwd_conv.c		character set conversions
 src/main/pwd_img.c		password extractor (from image files)
+src/main/pwd_msg.c
 src/main/pwd_par.c		password block gathering
 src/main/pwd_util.c		utility functions for file I/O, error handling etc
 src/main/pwdcfg.c		general config file reader

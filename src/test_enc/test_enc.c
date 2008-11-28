@@ -21,6 +21,8 @@
  *
  * @version
  * - 2007-09-04 v0.03 te add tests for pwdgen_strrev()
+ * - 2008-04-22 v0.04 te add tests for UTF-16 and UTF-32 to UTF-8
+ * - 2008-09-22 v0.05 te add tests for ISO-8859-1 => ASCII
  * 
  * @copydoc copyrighttext
 */
@@ -32,7 +34,7 @@ struct ssPWD* spwd;
 
 void printinfo(void)
   {
-  printf ("DiCoP test_enc worker v0.03  (c) Copyright by BSI 1998-2007\n\n");
+  printf ("DiCoP test_enc worker v0.05  (c) Copyright by BSI 1998-2008\n\n");
   PRINT_INFO;
   }
 
@@ -175,8 +177,16 @@ int initfunction(const struct ssPWD *pwd)
   struct sPwdString* foo, *bar, *russian, *mixed, *temp, *rc, *temp_1;
   int rc_cmp = 0;
   unsigned long r_len;
+  int i;
   /* Müller */
   unsigned char Mueller[8] = { 'M',0xfc,'l','l','e','r', 0 };
+  /* Müller in ASCII */
+  unsigned char Mueller_ascii[8] = { 'M','?','l','l','e','r', 0 };
+  /* Mller in ASCII */
+  unsigned char Mller_ascii[8] = { 'M','l','l','e','r', 0 };
+  /* for truncating */
+  unsigned char Muell[8]   = { 'M',0xfc,'l','l', 0 };
+  unsigned char Mue[8]     = { 'M',0xfc, 0 };
   /* rellüM */
   unsigned char rellueM[8] = { 'r','e','l','l',0xfc,'M', 0 };
   /* AnnA */
@@ -191,13 +201,18 @@ int initfunction(const struct ssPWD *pwd)
   unsigned char rellueM_utf16[16] = { 'r',0,'e',0,'l',0,'l',0,0xfc,0,'M',0,0 };
   /* rellüM */
   unsigned char rellueM_utf32[32] = { 'r',0,0,0,'e',0,0,0,'l',0,0,0,'l',0,0,0,0xfc,0,0,0,'M',0,0,0,0 };
+  /* Müller in UTF-8*/
+  unsigned char Mueller_utf8[8] = { 'M',0xc3,0xbc,'l','l','e','r',0x0 };
+  unsigned char Muell_utf8[8]   = { 'M',0xc3,0xbc,'l','l',0x0 };
+  unsigned char M_utf8[8]       = { 'M',0x0 };
   /* MüllerMüller */
   unsigned char Mueller2[16] = { 'M',0xc3,0xbc,'l','l','e','r','M',0xc3,0xbc,'l','l','e','r',0x0 };
   /* MüllerMueller */
   unsigned char Mueller3[16] = { 'M',0xc3,0xbc,'l','l','e','r','M','u','e','l','l','e','r',0x0 };
-  /* Русский */
+  /* Русский in UTF-8 */
   unsigned char russki[16] = { 0xd0, 0xa0, 0xd1, 0x83, 0xd1, 0x81, 0xd1, 0x81,
 				0xd0, 0xba, 0xd0, 0xb8, 0xd0, 0xb9, 0x00, 0x00 };
+  /* Русский in KOI8-R */
   unsigned char koi8r[16] = { 0xf2, 0xd5, 0xd3, 0xd3, 0xcb, 0xc9, 0xca, 0 };
   /* MüllerРусскийMüller in various encodings: */
   unsigned char tmp[32] = { 'M', 0xc3, 0xbc, 'l', 'l', 'e', 'r',
@@ -220,7 +235,13 @@ int initfunction(const struct ssPWD *pwd)
 				0x43,4,0,0, 0x41,4,0,0, 0x41,4,0,0, 0x3a,4,0,0, 0x38,4,0,0, 0x39,4,0,0,
 				0,0,0,0, };
 
-  /* for converting various encodings to UTF-16 */
+  /* for truncating */
+  unsigned char utf_16_truncated[32] = {  'M', 0, 0xfc, 0, 'l', 0, 'l', 0, 0, 0, };
+
+  unsigned char utf_32_truncated[32] = {  'M', 0,0,0, 0xfc, 0,0,0, 'l',0,0,0, 'l',0,0,0, 0,0,0,0, };
+
+  /* for converting various encodings to/from UTF-16 */
+  /* for converting various encodings to/from UTF-16 */
   unsigned char utf_16_iso_8859_1[32] = {  'M', 0, 0xfc, 0, 'l', 0, 'l', 0, 'e', 0, 'r', 0, 0, 0 };
   unsigned char utf_16_koi8_r[32] = { 0x20,0x04,0x43,0x04,0x41,0x04,0x41,0x04,0x3a,0x04,
 				0x38,0x04,0x39,0x04, 0,0 };
@@ -251,6 +272,11 @@ int initfunction(const struct ssPWD *pwd)
   /* this single byte is represented by 3 bytes in UTF-8 */
   unsigned char cp437[8] = { 0x9e, 0x0 };
 
+  /* 日本語 (Japanese) tests */
+  unsigned char japanese_utf8[16] = { 0xE6, 0x97, 0xA5, 0xE6, 0x9C,0xAC,0xE8,0xAA,0x9E,0x0 };
+  unsigned char japanese_utf16[16] = { 0xE5,0x65,0x2C,0x67,0x9E,0x8A,0x0, 0x0 };
+  unsigned char japanese_utf32[16] = { 0xE5,0x65,0,0,0x2C,0x67,0,0,0x9E,0x8A,0,0,0,0,0,0 };
+
   /* global copy so the test routines can check for critical errors */
   spwd = pwd;
 
@@ -271,7 +297,7 @@ int initfunction(const struct ssPWD *pwd)
 
   /* ******************************************************************** */
   printf ("### start ###\n");
-  plan_tests(212);
+  plan_tests(294);
  
   /* now run the individiual tests */
 
@@ -337,7 +363,7 @@ int initfunction(const struct ssPWD *pwd)
     }
   else { skip (4, "Couldn't allocate temp"); } 
 
-  cmp (russian->content, (char*)russki, 14, "russian is still correct");
+  cmp (russian->content, (char*)russki, 15, "russian is still correct");
 
   /* ******************************************************************** */
   /* check_string */
@@ -568,6 +594,69 @@ int initfunction(const struct ssPWD *pwd)
   else { skip (4, "Couldn't allocate temp"); } 
 
   /* ******************************************************************** */
+  /* UTF-16 to UTF-8 tests */
+
+  /* Müller */
+  temp = pwdgen_string(pwd, utf_16_iso_8859_1, 6*2, 255, UTF_16);
+  if (1 == non_null (temp, "utf_16_to_utf_8"))
+    {
+    equals (temp->bytes, 12, "utf-16 has correct length in bytes");
+    equals (temp->encoding, UTF_16, "UTF-16 has correct encoding");
+    equals (temp->characters, 6, "UTF-16's number of characters is 6");
+
+    pwdgen_convert (pwd, temp, UTF_8);
+
+    equals (temp->bytes, 7, "utf-8 has correct length in bytes after convert");
+    equals (temp->encoding, UTF_8, "UTF-8 has correct encoding");
+    equals (temp->characters, 6, "UTF-8's number of characters is still 6");
+
+    cmp (temp->content, (char*)Mueller_utf8, 8, "UTF-16 => UTF-8 worked");
+
+    pwdgen_free_string(pwd, temp);
+    }
+  else { skip (7, "Couldn't allocate temp"); } 
+
+  /* Russkij */
+  temp = pwdgen_string(pwd, utf_16_koi8_r, 14, 255, UTF_16);
+  if (1 == non_null (temp, "utf_16_to_utf_8 russki"))
+    {
+    equals (temp->bytes, 14, "utf-16 has correct length in bytes");
+    equals (temp->encoding, UTF_16, "UTF-16 has correct encoding");
+    equals (temp->characters, 7, "UTF-16's number of characters is 6");
+
+    pwdgen_convert (pwd, temp, UTF_8);
+
+    equals (temp->bytes, 14, "utf-8 has correct length in bytes after convert");
+    equals (temp->encoding, UTF_8, "UTF-8 has correct encoding");
+    equals (temp->characters, 7, "UTF-8's number of characters is still 6");
+
+    cmp (temp->content, (char*)russki, 15, "UTF-16 => UTF-8 worked");
+
+    pwdgen_free_string(pwd, temp);
+    }
+  else { skip (7, "Couldn't allocate temp"); } 
+
+  /* 日本語 (Japanese) tests */
+  temp = pwdgen_string(pwd, japanese_utf16, 6, 255, UTF_16);
+  if (1 == non_null (temp, "utf_16_to_utf_8 japanese"))
+    {
+    equals (temp->bytes, 6, "utf-16 has correct length in bytes");
+    equals (temp->encoding, UTF_16, "UTF-16 has correct encoding");
+    equals (temp->characters, 3, "UTF-16's number of characters is 3");
+
+    pwdgen_convert (pwd, temp, UTF_8);
+
+    equals (temp->bytes, 9, "utf-8 has correct length in bytes after convert");
+    equals (temp->encoding, UTF_8, "UTF-8 has correct encoding");
+    equals (temp->characters, 3, "UTF-8's number of characters is still 3");
+
+    cmp (temp->content, (char*)japanese_utf8, 10, "UTF-16 => UTF-8 worked");
+
+    pwdgen_free_string(pwd, temp);
+    }
+  else { skip (7, "Couldn't allocate temp"); } 
+
+  /* ******************************************************************** */
   /* single-byte to UTF-16 conversion tests */
   
   temp = pwdgen_string(pwd, Mueller, 6, 255, ISO_8859_1);
@@ -601,7 +690,7 @@ int initfunction(const struct ssPWD *pwd)
   /* UTF-8 to UTF-16 tests */
 
   temp = pwdgen_string(pwd, russki, r_len, 255, UTF_8);
-  if (1 == non_null (temp, "Русский in UTF-8"))
+  if (1 == non_null (temp, "Русский from UTF-8 to UTF-16"))
     {
     /* test pwdgen_convert_to_utf16, too */
     pwdgen_convert_to_utf16 (pwd, temp);
@@ -645,6 +734,36 @@ int initfunction(const struct ssPWD *pwd)
   else { skip (4, "Couldn't allocate temp"); } 
 
   /* ******************************************************************** */
+  /* single-byte to ASCII conversion tests */
+  
+  temp = pwdgen_string(pwd, Mueller, 6, 255, ISO_8859_1);
+  if (1 == non_null (temp, "Mueller in ISO-8859-1"))
+    {
+    pwdgen_convert (pwd, temp, ASCII);
+    equals (temp->bytes, 6, "ASCII has correct length in bytes");
+    equals (temp->encoding, ASCII, "ASCII has correct encoding");
+    equals (temp->characters, 6, "ASCII's number of characters is 6");
+    cmp (temp->content, (char*)Mueller_ascii, 6, "ISO-8859-1 converted to ASCII");
+
+    pwdgen_free_string(pwd, temp);
+    }
+  else { skip (4, "Couldn't allocate temp"); }
+ 
+  temp = pwdgen_string(pwd, Mueller, 6, 255, ISO_8859_1);
+  if (1 == non_null (temp, "Mueller in ISO-8859-1"))
+    {
+    /* test with replace being 0, meaning ü gets dropped */
+    pwdgen_convert_to (pwd, temp, ASCII, 0);
+    equals (temp->bytes, 5, "ASCII has correct length in bytes");
+    equals (temp->encoding, ASCII, "ASCII has correct encoding");
+    equals (temp->characters, 5, "ASCII's number of characters is 5");
+    cmp (temp->content, (char*)Mller_ascii, 5, "ISO-8859-1 converted to ASCII");
+
+    pwdgen_free_string(pwd, temp);
+    }
+  else { skip (4, "Couldn't allocate temp"); }
+
+  /* ******************************************************************** */
   /* UTF-32 tests */
 
   temp = pwdgen_string(pwd, utf_32, (6+7)*4, 255, UTF_32);
@@ -662,6 +781,26 @@ int initfunction(const struct ssPWD *pwd)
     pwdgen_free_string(pwd, temp);
     }
   else { skip (3, "Couldn't allocate temp"); } 
+
+  /* 日本語 (Japanese) UTF-32 tests */
+  temp = pwdgen_string(pwd, japanese_utf32, 12, 255, UTF_32);
+  if (1 == non_null (temp, "utf_32_to_utf_8 japanese"))
+    {
+    equals (temp->bytes, 12, "utf-32 has correct length in bytes");
+    equals (temp->encoding, UTF_32, "UTF-32 has correct encoding");
+    equals (temp->characters, 3, "UTF-32's number of characters is 3");
+
+    pwdgen_convert (pwd, temp, UTF_8);
+
+    equals (temp->bytes, 9, "utf-8 has correct length in bytes after convert");
+    equals (temp->encoding, UTF_8, "UTF-8 has correct encoding");
+    equals (temp->characters, 3, "UTF-8's number of characters is still 3");
+
+    cmp (temp->content, (char*)japanese_utf8, 10, "UTF-32 => UTF-8 worked");
+
+    pwdgen_free_string(pwd, temp);
+    }
+  else { skip (7, "Couldn't allocate temp"); } 
 
   /* ******************************************************************** */
   /* uc, lc, and uc_first in ISO-8859-1 */
@@ -844,6 +983,92 @@ int initfunction(const struct ssPWD *pwd)
   else { skip (4, "Couldn't allocate bar"); }
   
   /* ******************************************************************** */
+  /* truncate string */
+
+  /* in ISO-8859-1 */
+  bar = pwdgen_string(pwd, Mueller, 6, 255, ISO_8859_1);
+  if (1 == non_null (bar, "truncate_string"))
+    {
+    equals (bar->bytes, 6, "Müller has 6 bytes in ISO-8859-1");
+    equals (bar->characters, 6, "Müller has 6 characters in ISO-8859-1");
+
+    i = pwdgen_truncate_string(pwd, bar, 4);
+    equals (i, 1, "Müller got truncated to 4 characters");
+    equals (bar->bytes, 4, "'Müll' has 4 bytes in ISO-8859-1");
+    equals (bar->characters, 4, "'Müll' has 4 characters in ISO-8859-1");
+    cmp (bar->content, (char*)Muell, 5, "compare with zero-termination");
+
+    i = pwdgen_truncate_string(pwd, bar, 2);
+    equals (i, 1, "Müller got truncated to 2 characters");
+    equals (bar->bytes, 2, "Mü has 2 bytes in ISO-8859-1");
+    equals (bar->characters, 2, "Mü has 2 characters in ISO-8859-1");
+    cmp (bar->content, (char*)Mue, 3, "compare with zero-termination");
+
+    pwdgen_free_string(pwd, bar);
+    }
+  else { skip (11, "Couldn't allocate bar"); }
+
+  /* truncate in UTF-8 */
+  bar = pwdgen_string(pwd, Mueller_utf8, 7, 255, UTF_8);
+  if (1 == non_null (bar, "truncate_string"))
+    {
+    equals (bar->bytes, 7, "Müller has 7 bytes in UTF-8");
+    i = pwdgen_check_string(pwd, bar);
+    equals (bar->characters, 6, "Müller has 6 characters in UTF-8");
+
+    i = pwdgen_truncate_string(pwd, bar, 4);
+    equals (i, 1, "Müller got truncated to 4 characters");
+    equals (bar->bytes, 5, "'Müll' has 5 bytes in UTF-8");
+    equals (bar->characters, 4, "'Müll' has 4 characters in UTF-8");
+    cmp (bar->content, (char*)Muell_utf8, 6, "compare with zero-termination");
+
+    i = pwdgen_truncate_string(pwd, bar, 1);
+    equals (i, 1, "Müll got truncated to 1 characters");
+    equals (bar->bytes, 1, "M has 1 bytes in UTF-8");
+    equals (bar->characters, 1, "M has 1 characters in UTF-8");
+    cmp (bar->content, (char*)M_utf8, 2, "compare with zero-termination");
+
+    pwdgen_free_string(pwd, bar);
+    }
+  else { skip (11, "Couldn't allocate bar"); }
+
+  /* truncate in UTF-32 */
+  bar = pwdgen_string(pwd, utf_32, 12 * 4, 255, UTF_32);
+  if (1 == non_null (bar, "truncate_string UTF-32"))
+    {
+    equals (bar->bytes, 12*4, "MüllerRusskij has 12*4 bytes in UTF-32");
+    i = pwdgen_check_string(pwd, bar);
+    equals (bar->characters, 12, "MüllerRusskij has 12 characters in UTF-32");
+
+    i = pwdgen_truncate_string(pwd, bar, 4);
+    equals (i, 1, "Müller got truncated to 4 characters");
+    equals (bar->bytes, 4*4, "'Müll' has 16 bytes in UTF-32");
+    equals (bar->characters, 4, "'Müll' has 4 characters in UTF-32");
+    cmp (bar->content, (char*)utf_32_truncated, 20, "compare with zero-termination");
+
+    pwdgen_free_string(pwd, bar);
+    }
+  else { skip (7, "Couldn't allocate bar"); }
+
+  /* truncate in UTF-16 */
+  bar = pwdgen_string(pwd, utf_16, 12 * 2, 255, UTF_16);
+  if (1 == non_null (bar, "truncate_string UTF-16"))
+    {
+    equals (bar->bytes, 12*2, "MüllerRusskij has 24 bytes in UTF-16");
+    i = pwdgen_check_string(pwd, bar);
+    equals (bar->characters, 12, "MüllerRusskij has 12 characters in UTF-16");
+
+    i = pwdgen_truncate_string(pwd, bar, 4);
+    equals (i, 1, "Müller got truncated to 4 characters");
+    equals (bar->bytes, 4*2, "'Müll' has 8 bytes in UTF-16");
+    equals (bar->characters, 4, "'Müll' has 4 characters in UTF-16");
+    cmp (bar->content, (char*)utf_16_truncated, 10, "compare with zero-termination");
+
+    pwdgen_free_string(pwd, bar);
+    }
+  else { skip (7, "Couldn't allocate bar"); }
+
+  /* ******************************************************************** */
   /* strdup() */
 
   bar = pwdgen_string(pwd, tmp, 28, 255, UTF_8);
@@ -872,6 +1097,22 @@ int initfunction(const struct ssPWD *pwd)
     }
   else { skip (11, "Couldn't allocate bar"); }
 
+  /* ******************************************************************** */
+  /* string buffer resize tests */
+
+  /* truncate through string buffer resize in UTF-32 */
+  bar = pwdgen_string(pwd, utf_32, 12 * 4, 255, UTF_32);
+  if (1 == non_null (bar, "truncate_string UTF-32"))
+    {
+    equals (bar->bytes, 12*4, "MüllerRusskij has 12*4 bytes in UTF-32");
+
+    pwdgen_resize_string(pwd, bar, 12*4);
+    equals (bar->bytes, 44, "44 bytes + 0 bytes zero-termination");
+    equals (bar->size, 48, "minimum 46 bytes, but padded to 48 bytes");
+
+    pwdgen_free_string(pwd, bar);
+    }
+  else { skip (4, "Couldn't allocate bar"); }
 
   /* ******************************************************************** */
   printf ("### end ###\n");

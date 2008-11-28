@@ -1,4 +1,4 @@
-/*!
+/**
  * @file
  * @ingroup workerframeenc
  * @brief Dicop Project - Character encoding tables for CP1256
@@ -17,10 +17,10 @@
  *
  * @enddeutsch
  *
- * Used: Perl v5.008008, Encode v2.23
+ * Used: Perl v5.010000, Encode v2.23
  *  
  * @version 0.02 
- * @date Tue Aug 28 14:00:48 2007
+ * @date Tue Apr 15 15:13:23 2008
  *  
  * @copydoc copyrighttext
 */

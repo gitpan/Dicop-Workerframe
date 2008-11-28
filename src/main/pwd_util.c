@@ -45,27 +45,38 @@ void pwdgen_print_time (const char* format)
   fflush(NULL);	/* make the output appear immidiately */
   }
 
+void _exit_on_error(const int rc)
+  {
+  if (rc == -1)
+    {
+    /* some error happened */
+#if defined (WIN32) || defined (__sun)
+    printf (" Fatal IO error, aborting.\n");
+    exit(-1);
+#else
+    err (1,NULL);		/* does not return */
+#endif
+    }
+  /* no error, so return */
+  }
+
 /* ********************************************************************** */
 
 off_t pwdgen_file_size(const FILE *fin)
   {
-  int rc;
   off_t fs;
+  fpos_t old_pos;
 
-  /* set fileofs to 0 and clear errno */
-  rewind(fin);
-  rc = fseeko(fin,0,SEEK_END);
-  if (rc == -1)
-    {
-    /* some error happened */
-#ifndef WIN32
-    err (1,NULL);
-#else
-    return -1;
-#endif
-    }
+  /* clear errno */
+  clearerr(fin);
+  /* remember the current offset */
+  _exit_on_error( fgetpos(fin, &old_pos) );
+  /* seek to the end */
+  _exit_on_error( fseeko(fin, 0, SEEK_END) );
+  /* get the current position (at the end) */
   fs = ftello(fin);
-  rewind(fin);
+  /* restore the position */
+  _exit_on_error( fsetpos(fin, &old_pos) );
   return fs;
   }
 

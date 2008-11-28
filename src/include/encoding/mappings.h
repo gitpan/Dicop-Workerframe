@@ -28,7 +28,7 @@
  * @enddeutsch
  *  
  * @version 0.02 
- * @date Mon Nov 26 14:28:41 2007
+ * @date Tue Apr 15 15:13:25 2008
  *  
  * @copydoc copyrighttext
 */

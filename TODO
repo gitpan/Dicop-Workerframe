@@ -13,6 +13,7 @@ Support for Unicode and multi-byte characters in password generator:
   * finish the extract parameter setup (extract_utf8, extract_utf16 etc)
   * pwdgen_add_bom(pwd, string)
   * add support for surrogate pairs in UTF-16
+  * add support for little/big endian UTF-16 (including BOM)
   * finish the encoding conversions for multi-byte encodings
 
 =item *

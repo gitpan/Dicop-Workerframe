@@ -12,8 +12,7 @@
 /************************************************************************* */
 /* These macros are defined only when tomcrypt.h was included */
 
-#ifdef CRYPT
-#ifdef SCRYPT
+#if defined CRYPT && defined SCRYPT
 
 /* temp. variables for macros */
 int _crypt_err;
@@ -42,6 +41,16 @@ int _crypt_err;
 
 #define SELFTEST_SHA512 if ((_crypt_err = sha512_test()) != CRYPT_OK) {\
     printf("SHA512 did not pass selftest: '%s'\n", error_to_string(_crypt_err));\
+    return PWD_ERROR;\
+    }
+
+#define SELFTEST_RIPEMD128 if ((_crypt_err = rmd128_test()) != CRYPT_OK) {\
+    printf("RIPEMD128 did not pass selftest: '%s'\n", error_to_string(_crypt_err));\
+    return PWD_ERROR;\
+    }
+
+#define SELFTEST_RIPEMD160 if ((_crypt_err = rmd160_test()) != CRYPT_OK) {\
+    printf("RIPEMD160 did not pass selftest: '%s'\n", error_to_string(_crypt_err));\
     return PWD_ERROR;\
     }
 
@@ -74,6 +83,11 @@ int _crypt_err;
 
 #define SELFTEST_CAST128 if ((_crypt_err = cast5_test()) != CRYPT_OK) {\
     printf("CAST128 did not pass selftest: '%s'\n", error_to_string(_crypt_err));\
+    return PWD_ERROR;\
+    }
+
+#define SELFTEST_CAST5 if ((_crypt_err = cast5_test()) != CRYPT_OK) {\
+    printf("CAST5 did not pass selftest: '%s'\n", error_to_string(_crypt_err));\
     return PWD_ERROR;\
     }
 
@@ -150,7 +164,11 @@ int _crypt_err;
       printf("Error: AES CBC decrypt failed: %s\n", error_to_string(_crypt_err));\
       return PWD_ERROR; }
 
-#endif
+#define register_aes() if (register_cipher(&aes_desc) == -1)\
+   { printf ("Error registering AES cipher.\n"); return PWD_ERROR; }
+#define register_blowfish() if (register_cipher(&blowfish_desc) == -1)\
+   { printf ("Error registering AES cipher.\n"); return PWD_ERROR; }
+
 #endif
 
 #endif

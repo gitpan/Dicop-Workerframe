@@ -149,6 +149,7 @@ struct ssPWD
   char par_pchar; 			/**< the byte we padd with */
   char replacement;			/**< the character that is to be used in place of invalid
 						input bytes when converting strings. Defaults to "?" */
+  unsigned int identify;		/**<  0 => normal, 1 => --identify was used */
   } sPWD;
 
 /* check for timeout or whether a status report is nec. */
@@ -156,6 +157,9 @@ int pwdgen_time_check (struct ssPWD *sPWD);
 
 /* Parse output from setlocale() and return encoding. */
 enum eEncodings pwdgen_parse_locale (const char *locale);
+
+/* query locale information */
+int pwdgen_query_locale (struct ssPWD *sPWD);
 
 /* init the password generator */
 struct ssPWD* pwdgen_init (

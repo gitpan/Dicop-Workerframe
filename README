@@ -182,6 +182,14 @@ When compiling under Microsoft Visual C++ 8, you need to specify
 
 in the linker flags, or it will complain. *sigh*
 
+=head2 Windows Vista
+
+Windows Vista restricts non-Win32 apps to 32 Mbyte memory. We have not
+yet determined whether our workers are hit by this limitation. The
+following page gives background information and workarounds:
+
+	http://www.trnicely.net/misc/vista.html
+
 =head2 Others
 
 It should work on other platforms, too. However, we can not guaranty that

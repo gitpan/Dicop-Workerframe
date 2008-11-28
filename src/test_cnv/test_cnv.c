@@ -53,7 +53,7 @@ struct sPwdString* target_string;
 void printinfo(void)
   {
   /* print here your version and copyright */
-  printf ("DiCoP test_cnv worker v0.02  (c) Copyright by BSI 1998-2007\n\n");
+  printf ("DiCoP test_cnv worker v0.03  (c) Copyright by BSI 1998-2008\n\n");
   PRINT_INFO;
   }
 

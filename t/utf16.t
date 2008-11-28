@@ -19,7 +19,8 @@ chdir 'test-worker/';
 my $rc = `./pwdtest target/utf16.cfg`;
 
 $rc =~ /Last tested password in hex was '(.*)'/;
-is ("Last pwd '$1'","Last pwd '9e8a47006500'", 'last pwd');
+#is ("Last pwd '$1'","Last pwd '9e8a47006500'", 'last pwd');
+is ("Last pwd '$1'","Last pwd 'e8aa9e4765'", 'last pwd');
 $rc =~ /Stopcode is '(.*)'/;
 is ("Stop code '$1'","Stop code '0'", 'stop code');
 

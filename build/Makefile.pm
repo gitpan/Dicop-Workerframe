@@ -24,19 +24,37 @@ $warnings = '/wd4820' if $is_win;
 our $optimize = _optimize();
 
 # check arguments to Makefile.PL
-our $flags = ''; our $debug = 0;
+our $flags = ''; our $debug = 0; our $ldflags = '';
 for my $arg (@ARGV)
   {
   my $f = uc($arg);
   $f = '-D' . $f unless $f =~ /^-D/;
 
-  die ("Unknown flag $arg") unless $arg =~ /^-D(DEBUG)\z/;
+  die ("Unknown flag $arg") unless $arg =~ /^--(profile|debug)\z/;
 
-  $flags .= " $f";
-  $debug = 1 if $f eq '-DDEBUG';
+  # debug = 1 for DEBUG and PROFILE to not strip output file
+  $debug = 1;
+  if ($f eq '--debug')
+    {
+    $flags .= " -DDEBUG";
+    }
+  else # --profile
+    {
+    die ("Profiling under Win32 not yet supported.") if $is_win;
+    $flags .= " -pg";
+    $ldflags = " -pg";
+    }
+  $debug = 1;
   }
 $flags .= ' -D_FILE_OFFSET_BITS=64' unless $is_win;
 $flags .= ' -DWIN32 /nologo' if $is_win;
+
+if (!$is_win)
+  {
+  my $rc = `uname -m` || '';
+  # build 32bit on 64bit machines, otherwise it will fail
+  $ldflags .= " --oformat=elf32-i386" if $rc =~ /x86_64/;
+  }
 
 1;
 
@@ -69,6 +87,8 @@ sub _optimize
   $optimize =~ s/(^|\s)(-$entry)/$entries{$2} = 1;/eg;
 
   delete $entries{"-fno-strict-aliasing"};
+  # on 64bit systems, compile for 32bit (otherwise the build fails)
+  $entries{"-m32"} = 1;
 
   $optimize = join (" ", sort keys %entries);
   }

@@ -145,6 +145,36 @@ enum eEncodings pwdgen_parse_locale (const char *locale)
   }
 
 /* ************************************************************************* */
+/** Query the locale info and store it for proper output.
+*/
+
+int 
+pwdgen_query_locale (struct ssPWD *sPWD)
+  {
+  char* locale;
+
+  /* query the current locale and store it for later output via pwdgen_print */
+  sPWD->locale = UTF_8;			/* a sensible default for modern systems */
+  /* enable internationalization (I18N) support: */
+  setlocale(LC_ALL, "");
+  /* query the current locale, enabled by the line above */
+  locale = setlocale(LC_ALL, NULL);
+  if (NULL != locale)
+    {
+    sPWD->locale = pwdgen_parse_locale(locale);
+    if (sPWD->locale == INVALID_ENCODING)
+      {
+      printf (" *** Warning: Cannot determine encoding from locale '%s', fallback to ASCII.\n", locale);
+      sPWD->locale = ASCII;
+      }
+    printf (" Current locale            : %s\n Current encoding          : %s\n", locale,
+      pwdgen_encoding(sPWD->locale));
+    }
+
+  return 0;
+  }
+
+/* ************************************************************************* */
 /** Initialize the password generator.\n
 
    @todo This routine directly manipulates the global struct sPWD and returns a
@@ -173,7 +203,6 @@ pwdgen_init (const char *start, const char *end,
   unsigned int *table;
   struct ssPWD *gen;
   struct ssCharset *setptr;
-  char* locale;
   struct sPwdString** strcur;
 
   sPWD.charsets = pwdgen_read_charsets ();	/* read charsets from file */
@@ -183,6 +212,7 @@ pwdgen_init (const char *start, const char *end,
     return NULL;
     }
 
+  sPWD.identify = 0;
   sPWD.error = 0;
   sPWD.max_pwds = 32;		/* timeout check soon after start */
 
@@ -207,23 +237,7 @@ pwdgen_init (const char *start, const char *end,
     sPWD.once = 1;				/* 1 => only once */
     }
 
-  /* query the current locale and store it for later output via pwdgen_print */
-  sPWD.locale = UTF_8;				/* a sensible default for modern systems */
-  /* enable internationalization (I18N) support: */
-  setlocale(LC_ALL, "");
-  /* query the current locale, enabled by the line above */
-  locale = setlocale(LC_ALL, NULL);
-  if (NULL != locale)
-    {
-    sPWD.locale = pwdgen_parse_locale(locale);
-    if (sPWD.locale == INVALID_ENCODING)
-      {
-      printf (" *** Warning: Cannot determine encoding from locale '%s', fallback to ASCII.\n", locale);
-      sPWD.locale = ASCII;
-      }
-    printf (" Current locale            : %s\n Current encoding          : %s\n", locale, 
-      pwdgen_encoding(sPWD.locale));
-    }
+  pwdgen_query_locale( &sPWD );
 
   sPWD.crc = 0;
   sPWD.overflow = sPWD.gen_length;
@@ -340,7 +354,7 @@ pwdgen_init (const char *start, const char *end,
   
   if (sPWD.type == SET_SIMPLE)
     {
-    printf ("  Simple charset contains %i charactesrs.\n", sPWD.set->length);
+    printf ("  Contains %i charactesrs.\n", sPWD.set->length);
     }
 
   sPWD.length = sPWD.gen_length;
@@ -505,11 +519,11 @@ pwdgen_init (const char *start, const char *end,
 	  gen->encoding[0] = sPWD.generator_encoding;
 	  gen->encodings = 1;
 
-	  /* The worst case is 6 bytes for each character in UTF-8, so we make the
+	  /* The worst case is 4 bytes for each character in UTF-8, so we make the
 	     buffer big enough to hold all possible strings that we could encounter,
 	     saving on buffer resizing. */
           strcur = (struct sPwdString**)&gen->cur;
-	  *strcur = pwdgen_new_string(gen, PWD_LEN * 6, gen->encoding[0]);
+	  *strcur = pwdgen_new_string(gen, PWD_LEN * 4 + 4, gen->encoding[0]);
           if (0 != gen->error)
             {
             return NULL;
@@ -633,13 +647,13 @@ pwdgen_init (const char *start, const char *end,
       } /* end for sPWD.starlen */
     }
 
-  /* The worst case is 6 bytes for each character in UTF-8, so we make the buffer big
+  /* The worst case is 4 bytes for each character in UTF-8, so we make the buffer big
      enough to hold all possible strings that we could encounter, saving on buffer resizing. */
   /* sPWD.cur is read-only, so fix that up */
 
   strcur = (struct sPwdString**)&sPWD.cur;
   *strcur = pwdgen_string(&sPWD, (unsigned char*)sPWD.pwd, sPWD.length, 
-				PWD_LEN * 6, sPWD.generator_encoding); 
+				PWD_LEN * 4 + 4, sPWD.generator_encoding); 
   if (0 != sPWD.error)
     {
     /* some error allocating new string */

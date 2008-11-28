@@ -17,10 +17,10 @@
  *
  * @enddeutsch
  *
- * Used: Perl v5.008008, Encode v2.23
+ * Used: Perl v5.010000, Encode v2.23
  *  
  * @version 0.02 
- * @date Mon Nov 26 14:28:38 2007
+ * @date Tue Apr 15 15:13:24 2008
  *  
  * @copydoc copyrighttext
 */

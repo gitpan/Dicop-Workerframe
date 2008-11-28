@@ -36,7 +36,7 @@ Examples:
 	my_option=foobar
 	another="With spaces"
 
-=head2 charsets.lst
+=head2 charsets.def
 
 As with other config files, comment and empty lines will be ignored.
 
@@ -115,7 +115,7 @@ Bit field describing the various dictionary mutations applied to each word.
 There are currently eleven different mutations and the maximum value is thus
 2047.
 
-Only used if L<charset_id> is of the type SET_DICTIONARY.
+Only used if L<charset_id> is of the type SET_DICTIONARY or SET_EXTRACT.
 
 This key can also be set in the chunk description file.
 
@@ -141,7 +141,7 @@ Bit field describing the various dictionary stages applied to each word.
 
 There are currently two, C<forward> and C<reverse>.
 
-Only used if L<charset_id> is of the type SET_DICTIONARY.
+Only used if L<charset_id> is of the type SET_DICTIONARY, or SET_EXTRACT.
 
 This key can also be set in the chunk description file.
 
@@ -404,7 +404,39 @@ Is an alias for C<dictionary>.
 
 =item dictionary_stages
 
+Bit field describing the various dictionary stages applied to each word.
+
+There are currently two, C<forward> and C<reverse>.
+
+Only used if L<charset_id> is of the type SET_DICTIONARY, or SET_EXTRACT.
+
+This key can also be set in the chunk description file.
+
 =item dictionary_mutations
+
+Bit field describing the various dictionary mutations applied to each word.
+There are currently eleven different mutations and the maximum value is thus
+2047.
+
+Only used if L<charset_id> is of the type SET_DICTIONARY or SET_EXTRACT.
+
+This key can also be set in the chunk description file.
+
+The different bits are defined as follows:
+
+ #define		      Decimal	Description
+ ===========================================================
+ DICT_LOWER                         1	lowercase
+ DICT_UPPER                         2	UPPERCASE
+ DICT_LOWER_FIRST                   4	lOWERFIRST
+ DICT_UPPER_FIRST                   8	Upperfirst
+ DICT_LOWER_LAST                   16	LOWERLASt
+ DICT_UPPER_LAST                   32	upperlasT
+ DICT_UPPER_ODD                    64	uPpErOdD
+ DICT_UPPER_EVEN                  128	UpPeReVEn
+ DICT_UPPER_VOWELS                256	UppErvOwEls
+ DICT_UPPER_CONSONANTS            512	uPPeRCoNSoNaNTS
+ DICT_ORIGINAL			 1024	The word as written
 
 =back
 

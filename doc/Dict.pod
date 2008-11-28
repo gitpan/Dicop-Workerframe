@@ -36,7 +36,7 @@ You just need to write a config file like this one:
 	# 1, 2, or 3, see above
 	dictionary_stages=3
 	# 1 .. 1023, see above
-	dictionary_stages=1023
+	dictionary_mutations=1023
 
 The charsets are defined in the file C<charsets.def>, found in the worker dir.
 

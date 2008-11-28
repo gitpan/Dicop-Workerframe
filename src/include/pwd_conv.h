@@ -96,6 +96,9 @@ int pwdgen_empty_string(const struct ssPWD* pwd, struct sPwdString* str);
 /* Resize the storage buffer of a string */
 int pwdgen_resize_string(const struct ssPWD* pwd, struct sPwdString* str, const size_t min_size);
 
+/* truncate a string to max_chars characters */
+int pwdgen_truncate_string(const struct ssPWD *pwd, struct sPwdString* str, const size_t max_chars);
+
 /* Convert a string in-place to the given encoding. */
 int pwdgen_convert_to (const struct ssPWD* pwd, struct sPwdString* input, const enum eEncodings encoding, const char replace);
 

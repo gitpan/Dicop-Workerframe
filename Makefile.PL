@@ -23,6 +23,7 @@ my $c_files = [ qw/
   pwd_img
   pwd_par
   pwd_util
+  pwd_msg
   pwdcfg
   pwddict
   pwdgen
@@ -35,7 +36,8 @@ my $c_files = [ qw/
 #
 # No changes necessary below!
 
-# set $optimize, $flags, $warnings, $updir, $arch and $is_win:
+# This require sets $optimize, $flags, $warnings, $updir, $arch, $libprefix,
+# $ldflags and $is_win:
 require "build/Makefile.pm";
 
 # lib/libdicop$(LIB_EXT)
@@ -80,6 +82,8 @@ for my $worker (sort keys %$workers)
 
 WriteMakefile(
   NAME		 => 'Dicop-Workerframe',
+  ABSTRACT	 => 'Framework for creating workers for a DiCoP system',
+  LICENSE	 => 'BSD',
   'VERSION_FROM' => 'src/include/patch.h',
 
   OBJECT	 => $o_files,
@@ -163,8 +167,10 @@ sub MY::subdirs
 
     $subdirs_rule .= "$result ";
 
-    my $LD = 'LD_RUN_PATH="$(LD_RUN_PATH)" $(LD) -dynamic $(' . $W . '_O) $(OTHERLDFLAGS) -o $@ $(INSTALLPRIVLIB) $(EXPORT_LIST)';
-    $LD = '$(LD) /OUT:"$@$(EXE_EXT)" $(' . $W . '_O) /NOLOGO /SUBSYSTEM:CONSOLE $(OTHERLDFLAGS) $(INSTALLPRIVLIB)' if $is_win;
+    my $LD = 'LD_RUN_PATH="$(LD_RUN_PATH)" $(LD) -dynamic $(' . $W . '_O) $(OTHERLDFLAGS)'.
+	$ldflags.' -o $@ $(INSTALLPRIVLIB) $(EXPORT_LIST)';
+    $LD = '$(LD) /OUT:"$@$(EXE_EXT)" $(' . $W . '_O) /NOLOGO /SUBSYSTEM:CONSOLE $(OTHERLDFLAGS)'.
+	$ldflags.' $(INSTALLPRIVLIB)' if $is_win;
 
     my $r = "$result: $WO \$(LIB)\n";
     $r = "$result: $WO\n" if $is_win;
